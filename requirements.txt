@@ -17,3 +17,4 @@ fastapi-limiter
 email-validator
 pytz
 APScheduler==3.10.4
+gunicorn
