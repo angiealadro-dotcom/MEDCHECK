@@ -1,62 +1,275 @@
-{% extends "base.html" %}
-
-{% block title %}MedCheck - Inicio{% endblock %}
-
-{% block content %}
-<div class="row">
-    <div class="col-md-12 text-center">
-        <h1 class="display-4 mb-4">MedCheck</h1>
-        <p class="lead">Sistema de verificación de buenas prácticas en la administración de medicamentos</p>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Nueva Lista de Cotejo</h5>
-                <p class="card-text">Crear una nueva lista de verificación para la administración de medicamentos.</p>
-                <a href="/checklist/new" class="btn btn-primary">Comenzar</a>
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedCheck - Sistema de Verificación Médica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-icon {
+            font-size: 48px;
+        }
+        .logo h1 {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        nav {
+            display: flex;
+            gap: 20px;
+        }
+        nav a {
+            color: #555;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+        .hero {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero h2 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        .hero p {
+            font-size: 20px;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .card-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+        }
+        .card h3 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        .info-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        .info-section h3 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        .info-section p {
+            color: #555;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        .features-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .features-list li {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .features-list strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        footer {
+            text-align: center;
+            color: white;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .hero {
+                padding: 40px 20px;
+            }
+            .hero h2 {
+                font-size: 32px;
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon"></span>
+                <h1>MedCheck</h1>
+            </div>
+            <nav>
+                <a href="#inicio">Inicio</a>
+                <a href="#funciones">Funciones</a>
+                <a href="#acerca">Acerca de</a>
+                <a href="/login">Iniciar Sesión</a>
+            </nav>
+        </header>
+        <div class="hero">
+            <h2>Sistema Inteligente de Verificación Médica</h2>
+            <p>Garantiza la seguridad del paciente mediante la verificación sistemática de buenas prácticas en la administración de medicamentos</p>
+        </div>
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-icon"></div>
+                <h3>Nueva Lista de Cotejo</h3>
+                <p>Crea y gestiona verificaciones completas del proceso de administración de medicamentos con nuestro sistema intuitivo.</p>
+                <a href="/checklist/new" class="btn">Comenzar Ahora</a>
+            </div>
+            <div class="card">
+                <div class="card-icon"></div>
+                <h3>Historial Completo</h3>
+                <p>Accede al registro detallado de todas las verificaciones realizadas y monitorea el cumplimiento en tiempo real.</p>
+                <a href="/checklist/history" class="btn">Ver Historial</a>
+            </div>
+            <div class="card">
+                <div class="card-icon"></div>
+                <h3>Reportes Avanzados</h3>
+                <p>Genera análisis estadísticos completos y reportes visuales para optimizar los procesos médicos.</p>
+                <a href="/reports" class="btn">Ver Reportes</a>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Historial</h5>
-                <p class="card-text">Ver el historial de listas de cotejo y verificaciones realizadas.</p>
-                <a href="/checklist/history" class="btn btn-primary">Ver Historial</a>
-            </div>
+        <div class="info-section">
+            <h3>¿Por qué MedCheck?</h3>
+            <p>MedCheck es una herramienta profesional diseñada para instituciones de salud que buscan garantizar la máxima seguridad en la administración de medicamentos mediante protocolos estandarizados y verificación digital.</p>
+            <h3 style="margin-top: 40px;">Características Principales</h3>
+            <ul class="features-list">
+                <li>
+                    <strong> Protocolo de Seguridad</strong>
+                    Guías paso a paso para cada etapa del proceso de medicación
+                </li>
+                <li>
+                    <strong> Verificación Digital</strong>
+                    Listas de cotejo interactivas con validación automática
+                </li>
+                <li>
+                    <strong> Acceso Multiplataforma</strong>
+                    Disponible en web, tablet y dispositivos móviles
+                </li>
+                <li>
+                    <strong> Alertas Inteligentes</strong>
+                    Notificaciones automáticas ante incumplimientos críticos
+                </li>
+                <li>
+                    <strong> Analytics Avanzado</strong>
+                    Dashboards con métricas en tiempo real y tendencias
+                </li>
+                <li>
+                    <strong> Seguridad Total</strong>
+                    Encriptación de datos y cumplimiento de normativas de salud
+                </li>
+            </ul>
         </div>
+        <footer>
+            <p>&copy; 2025 MedCheck - Sistema de Verificación de Buenas Prácticas Médicas</p>
+            <p style="margin-top: 10px; opacity: 0.8;">Desarrollado con tecnología FastAPI + Python</p>
+        </footer>
     </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Reportes</h5>
-                <p class="card-text">Analizar el cumplimiento y generar reportes estadísticos.</p>
-                <a href="/reports" class="btn btn-primary">Ver Reportes</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h3>Acerca de MedCheck</h3>
-                <p>MedCheck es una herramienta diseñada para garantizar la seguridad del paciente y la eficacia terapéutica mediante la verificación sistemática de los pasos críticos en la prescripción, preparación, administración y registro de medicamentos.</p>
-                
-                <h4 class="mt-4">Componentes Principales:</h4>
-                <ul>
-                    <li><strong>Protocolo de Buenas Prácticas:</strong> Describe qué hacer y cómo hacerlo en cada etapa del proceso.</li>
-                    <li><strong>Lista de Cotejo:</strong> Permite verificar el cumplimiento de cada paso durante la práctica.</li>
-                    <li><strong>Sistema de Reportes:</strong> Facilita el análisis y seguimiento del cumplimiento.</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+</body>
+</html>
