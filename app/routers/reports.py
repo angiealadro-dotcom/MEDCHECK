@@ -4,8 +4,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from datetime import datetime, timedelta
 from app.models.checklist import ChecklistSummary
-from app.db.snowflake import get_snowflake_connection
-from app.routers.auth import get_current_user, User
 from app.services.snowflake_service import SnowflakeService
 from app.services.reporting_service import ReportingService
 
@@ -15,22 +13,13 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/dashboard", response_class=HTMLResponse)
 async def get_dashboard(
     request: Request,
-    current_user: User = Depends(get_current_user),
     area: Optional[str] = None,
     periodo: Optional[str] = "7d"
 ):
     """
     Dashboard principal de reportes
     """
-    if current_user.role not in ["admin", "supervisor"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tiene permisos para acceder al dashboard"
-        )
-
-    # Si no es admin, solo puede ver su área
-    if current_user.role != "admin":
-        area = current_user.area
+    current_user = None
 
     # Calcular rango de fechas según periodo
     hasta = datetime.now()
@@ -43,8 +32,9 @@ async def get_dashboard(
     else:
         desde = hasta - timedelta(days=7)
 
-    entries = await SnowflakeService.get_checklist_entries(area, desde, hasta)
-    summary = await SnowflakeService.get_cumplimiento_summary()
+    # Por ahora retornar datos vacíos
+    entries = []
+    summary = {}
     
     return templates.TemplateResponse(
         "reports_dashboard.html",

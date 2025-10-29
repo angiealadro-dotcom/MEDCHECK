@@ -13,12 +13,12 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/new", response_class=HTMLResponse)
 async def new_checklist_form(
-    request: Request,
-    current_user: User = Depends(get_current_user)
+    request: Request
 ):
     """
     Mostrar formulario para nueva lista de cotejo
     """
+    current_user = None
     return templates.TemplateResponse(
         "checklist_form.html",
         {"request": request, "current_user": current_user}
@@ -47,7 +47,6 @@ async def create_checklist_entry(
 @router.get("/history", response_class=HTMLResponse)
 async def get_checklist_history(
     request: Request,
-    current_user: User = Depends(get_current_user),
     area: Optional[str] = None,
     desde: Optional[datetime] = None,
     hasta: Optional[datetime] = None
@@ -55,11 +54,10 @@ async def get_checklist_history(
     """
     Mostrar historial de listas de cotejo
     """
-    # Si no es admin/supervisor, solo puede ver su área
-    if current_user.role not in ["admin", "supervisor"]:
-        area = current_user.area
-
-    entries = await SnowflakeService.get_checklist_entries(area, desde, hasta)
+    # Por ahora retornar una lista vacía si no hay usuario
+    entries = []
+    current_user = None
+    
     return templates.TemplateResponse(
         "checklist_history.html",
         {
