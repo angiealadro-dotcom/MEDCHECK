@@ -1,100 +1,61 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from app.auth.users import fastapi_users, auth_backend, current_active_user
-from app.models.user import User
-from app.db.database import create_db_and_tables
+from app.db.database import create_tables
+from app.routers import auth_simple
+from app.config import settings
 
+# Crear la aplicación
 app = FastAPI(
-    title="MedCheck - Protocolo y Lista de Cotejo",
+    title=settings.app_name,
     description="Sistema de verificación de buenas prácticas en la administración de medicamentos",
     version="1.0.0"
 )
 
-# CORS configuration
+# Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar los dominios permitidos
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-
-# Templates configuration
+# Configuración de templates
 templates = Jinja2Templates(directory="templates")
 
-# Static files
+# Archivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Include FastAPI Users routers
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_register_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_verify_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
+# Incluir routers
+app.include_router(auth_simple.router)
 
-# Import routers
-from app.routers import checklist
-
-# Include FastAPI Users routers
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_register_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_verify_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-app.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-
-# Protected root route
+# Ruta principal
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request, user: User = Depends(current_active_user)):
+async def root(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {
-            "request": request,
-            "user": user
-        }
+        {"request": request}
     )
 
-# Include other routers
-app.include_router(checklist.router, prefix="/checklist", tags=["Lista de Cotejo"])
+# Página de login
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request}
+    )
 
-# Database initialization
+# Inicialización de la base de datos
 @app.on_event("startup")
-async def on_startup():
-    await create_db_and_tables()
+async def startup_event():
+    create_tables()
+    print(f"✅ {settings.app_name} iniciado correctamente")
+    print(f"📊 Base de datos: {settings.database_url}")
+    print(f"🌍 Entorno: {settings.environment}")
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "app": settings.app_name}

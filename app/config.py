@@ -1,7 +1,14 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from pathlib import Path
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(extra='allow', env_file='.env')
+    
+    # App configuration
+    app_name: str = "MedCheck"
+    environment: str = "development"
+    
     # Database configuration
     database_url: str = f"sqlite:///{Path(__file__).parent.parent}/medcheck.db"
     
@@ -17,8 +24,5 @@ class Settings(BaseSettings):
     snowflake_schema: str = "PUBLIC"
     snowflake_warehouse: str = "COMPUTE_WH"
     snowflake_role: str = "ACCOUNTADMIN"
-
-    class Config:
-        env_file = ".env"
 
 settings = Settings()
