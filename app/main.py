@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from app.db.database import create_tables
-from app.routers import auth_simple
+from app.routers import auth_simple, checklist, reports
 from app.config import settings
 
 # Crear la aplicación
@@ -31,6 +31,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Incluir routers
 app.include_router(auth_simple.router)
+app.include_router(checklist.router, prefix="/checklist", tags=["checklist"])
+app.include_router(reports.router, prefix="/reports", tags=["reports"])
 
 # Ruta principal
 @app.get("/", response_class=HTMLResponse)
