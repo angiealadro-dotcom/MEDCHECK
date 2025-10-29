@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}MedCheck - Inicio{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center">
+        <h1 class="display-4 mb-4">MedCheck</h1>
+        <p class="lead">Sistema de verificación de buenas prácticas en la administración de medicamentos</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Nueva Lista de Cotejo</h5>
+                <p class="card-text">Crear una nueva lista de verificación para la administración de medicamentos.</p>
+                <a href="/checklist/new" class="btn btn-primary">Comenzar</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Historial</h5>
+                <p class="card-text">Ver el historial de listas de cotejo y verificaciones realizadas.</p>
+                <a href="/checklist/history" class="btn btn-primary">Ver Historial</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Reportes</h5>
+                <p class="card-text">Analizar el cumplimiento y generar reportes estadísticos.</p>
+                <a href="/reports" class="btn btn-primary">Ver Reportes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h3>Acerca de MedCheck</h3>
+                <p>MedCheck es una herramienta diseñada para garantizar la seguridad del paciente y la eficacia terapéutica mediante la verificación sistemática de los pasos críticos en la prescripción, preparación, administración y registro de medicamentos.</p>
+                
+                <h4 class="mt-4">Componentes Principales:</h4>
+                <ul>
+                    <li><strong>Protocolo de Buenas Prácticas:</strong> Describe qué hacer y cómo hacerlo en cada etapa del proceso.</li>
+                    <li><strong>Lista de Cotejo:</strong> Permite verificar el cumplimiento de cada paso durante la práctica.</li>
+                    <li><strong>Sistema de Reportes:</strong> Facilita el análisis y seguimiento del cumplimiento.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

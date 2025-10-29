@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Listas de Cotejo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Historial de Listas de Cotejo</h2>
+        
+        <div class="table-responsive mt-4">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha/Hora</th>
+                        <th>Área</th>
+                        <th>Turno</th>
+                        <th>Etapa</th>
+                        <th>Item</th>
+                        <th>¿Cumple?</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ entry.area }}</td>
+                        <td>{{ entry.turno }}</td>
+                        <td>{{ entry.protocolo_etapa }}</td>
+                        <td>{{ entry.item }}</td>
+                        <td>
+                            {% if entry.cumple %}
+                            <span class="badge bg-success">Sí</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ entry.observaciones or '' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">No hay registros disponibles</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <a href="/checklist/new" class="btn btn-primary mt-3">
+            Crear Nueva Lista de Cotejo
+        </a>
+    </div>
+</div>
+{% endblock %}

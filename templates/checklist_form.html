@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Lista de Cotejo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Lista de Cotejo para Administración de Medicamentos</h2>
+        <form id="checklistForm" class="mt-4">
+            <div class="mb-3">
+                <label class="form-label">Área</label>
+                <input type="text" class="form-control" name="area" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Turno</label>
+                <select class="form-select" name="turno" required>
+                    <option value="mañana">Mañana</option>
+                    <option value="tarde">Tarde</option>
+                    <option value="noche">Noche</option>
+                </select>
+            </div>
+
+            <!-- Etapa: Prescripción -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>1. Prescripción médica</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="prescripcion_legible">
+                        <label class="form-check-label">
+                            Prescripción legible, completa y actualizada
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="prescripcion_completa">
+                        <label class="form-check-label">
+                            Incluye: nombre del medicamento, dosis, vía y frecuencia
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="alergias_verificadas">
+                        <label class="form-check-label">
+                            Verificación de alergias y antecedentes relevantes
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Etapa: Preparación -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>2. Preparación</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="higiene_manos">
+                        <label class="form-check-label">
+                            Higiene de manos realizada
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="area_limpia">
+                        <label class="form-check-label">
+                            Preparación en área limpia, sin distracciones
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="verificacion_medicamento">
+                        <label class="form-check-label">
+                            Verificación de medicamento, dosis y caducidad
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Etapa: Administración -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>3. Administración</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="paciente_correcto">
+                        <label class="form-check-label">
+                            Paciente correcto verificado
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="hora_correcta">
+                        <label class="form-check-label">
+                            Hora correcta de administración
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="via_correcta">
+                        <label class="form-check-label">
+                            Vía de administración correcta
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Observaciones</label>
+                <textarea class="form-control" name="observaciones" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar Lista de Cotejo</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('checklistForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        area: formData.get('area'),
+        turno: formData.get('turno'),
+        items: {
+            prescripcion: {
+                legible: formData.get('prescripcion_legible') === 'on',
+                completa: formData.get('prescripcion_completa') === 'on',
+                alergias: formData.get('alergias_verificadas') === 'on'
+            },
+            preparacion: {
+                higiene: formData.get('higiene_manos') === 'on',
+                area: formData.get('area_limpia') === 'on',
+                verificacion: formData.get('verificacion_medicamento') === 'on'
+            },
+            administracion: {
+                paciente: formData.get('paciente_correcto') === 'on',
+                hora: formData.get('hora_correcta') === 'on',
+                via: formData.get('via_correcta') === 'on'
+            }
+        },
+        observaciones: formData.get('observaciones')
+    };
+
+    try {
+        const response = await fetch('/checklist/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('Lista de cotejo guardada exitosamente');
+            window.location.href = '/checklist/history';
+        } else {
+            alert('Error al guardar la lista de cotejo');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión');
+    }
+});
+</script>
+{% endblock %}

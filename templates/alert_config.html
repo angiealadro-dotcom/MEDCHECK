@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Alertas{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Configuración de Alertas</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Umbrales de Alerta</h5>
+                    <form id="alertConfigForm" class="mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Umbral Crítico (%)</label>
+                            <input type="number" class="form-control" name="critical_threshold" 
+                                   value="{{ config.critical_threshold }}" min="0" max="100">
+                            <div class="form-text">Se generarán alertas cuando el cumplimiento esté por debajo de este valor</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Frecuencia de Revisión (horas)</label>
+                            <input type="number" class="form-control" name="check_frequency" 
+                                   value="{{ config.check_frequency }}" min="1" max="24">
+                            <div class="form-text">Cada cuántas horas se revisarán las métricas</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Destinatarios Adicionales</label>
+                            <textarea class="form-control" name="additional_recipients" rows="3"
+                                    placeholder="Un email por línea">{{ config.additional_recipients }}</textarea>
+                            <div class="form-text">Emails adicionales que recibirán las alertas (además de los supervisores)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="enabled" 
+                                       id="alertsEnabled" {% if config.enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="alertsEnabled">
+                                    Sistema de alertas activo
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Probar Sistema de Alertas</h5>
+                    <form id="testAlertForm" class="mt-3">
+                        <div class="mb-3">
+                            <label class="form-label">Email de Prueba</label>
+                            <input type="email" class="form-control" name="test_email" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Enviar Alerta de Prueba</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Registro de Alertas Recientes</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Área</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertLogTable">
+                                {% for log in alert_logs %}
+                                <tr>
+                                    <td>{{ log.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ log.tipo }}</td>
+                                    <td>{{ log.area }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if log.enviado else 'danger' }}">
+                                            {{ 'Enviado' if log.enviado else 'Fallido' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const alertConfigForm = document.getElementById('alertConfigForm');
+    const testAlertForm = document.getElementById('testAlertForm');
+    
+    alertConfigForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(alertConfigForm);
+        const config = {
+            critical_threshold: parseInt(formData.get('critical_threshold')),
+            check_frequency: parseInt(formData.get('check_frequency')),
+            additional_recipients: formData.get('additional_recipients'),
+            enabled: formData.get('enabled') === 'on'
+        };
+        
+        try {
+            const response = await fetch('/alerts/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+            
+            if (response.ok) {
+                alert('Configuración guardada correctamente');
+            } else {
+                throw new Error('Error al guardar la configuración');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+    
+    testAlertForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = testAlertForm.querySelector('[name="test_email"]').value;
+        
+        try {
+            const response = await fetch('/alerts/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+            
+            if (response.ok) {
+                alert('Alerta de prueba enviada correctamente');
+            } else {
+                throw new Error('Error al enviar la alerta de prueba');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+});
+</script>
+{% endblock %}

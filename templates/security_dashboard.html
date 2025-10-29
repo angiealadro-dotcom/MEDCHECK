@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Seguridad{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Panel de Seguridad</h2>
+        
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="securityFilterForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Periodo</label>
+                        <select class="form-select" name="periodo" id="periodFilter">
+                            <option value="24h">Últimas 24 horas</option>
+                            <option value="7d">Últimos 7 días</option>
+                            <option value="30d">Últimos 30 días</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tipo de Evento</label>
+                        <select class="form-select" name="eventType" id="eventTypeFilter">
+                            <option value="">Todos</option>
+                            <option value="login">Login</option>
+                            <option value="failed_login">Login Fallido</option>
+                            <option value="password_change">Cambio de Contraseña</option>
+                            <option value="account_locked">Cuenta Bloqueada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resumen -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Eventos Totales</h5>
+                        <h2 id="totalEvents">{{ summary.daily_summary.total_events }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Eventos Fallidos</h5>
+                        <h2 id="failedEvents">{{ summary.daily_summary.failed_events }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Usuarios Únicos</h5>
+                        <h2 id="uniqueUsers">{{ summary.daily_summary.unique_users }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">IPs Únicas</h5>
+                        <h2 id="uniqueIPs">{{ summary.daily_summary.unique_ips }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tendencia de Eventos</h5>
+                        <canvas id="eventsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Distribución de Eventos</h5>
+                        <canvas id="eventsPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Eventos -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Registro de Eventos</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Usuario</th>
+                                <th>Evento</th>
+                                <th>Estado</th>
+                                <th>IP</th>
+                                <th>Detalles</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody">
+                            {% for event in events %}
+                            <tr>
+                                <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ event.username }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if event.event_type == 'login' %}bg-success
+                                        {% elif event.event_type == 'failed_login' %}bg-danger
+                                        {% elif event.event_type == 'password_change' %}bg-info
+                                        {% else %}bg-secondary{% endif %}
+                                    ">
+                                        {{ event.event_type }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if event.status == 'success' %}bg-success
+                                        {% elif event.status == 'failure' %}bg-danger
+                                        {% else %}bg-warning{% endif %}
+                                    ">
+                                        {{ event.status }}
+                                    </span>
+                                </td>
+                                <td>{{ event.ip_address }}</td>
+                                <td>{{ event.details }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar gráfico de tendencias
+    const eventsCtx = document.getElementById('eventsChart').getContext('2d');
+    new Chart(eventsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ summary.hourly_trends | map(attribute='hour') | list | tojson }},
+            datasets: [{
+                label: 'Total Eventos',
+                data: {{ summary.hourly_trends | map(attribute='events') | list | tojson }},
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }, {
+                label: 'Eventos Fallidos',
+                data: {{ summary.hourly_trends | map(attribute='failures') | list | tojson }},
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Configurar gráfico de distribución
+    const eventsPieCtx = document.getElementById('eventsPieChart').getContext('2d');
+    new Chart(eventsPieCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Exitosos', 'Fallidos', 'Advertencias'],
+            datasets: [{
+                data: [
+                    {{ summary.daily_summary.total_events - summary.daily_summary.failed_events }},
+                    {{ summary.daily_summary.failed_events }},
+                    {{ summary.daily_summary.account_lockouts }}
+                ],
+                backgroundColor: [
+                    'rgb(75, 192, 192)',
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 205, 86)'
+                ]
+            }]
+        }
+    });
+
+    // Manejar formulario de filtros
+    document.getElementById('securityFilterForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const params = new URLSearchParams();
+        for (let [key, value] of formData.entries()) {
+            params.append(key, value);
+        }
+        
+        try {
+            const response = await fetch(`/security/events?${params.toString()}`);
+            if (response.ok) {
+                const data = await response.json();
+                updateDashboard(data);
+            }
+        } catch (error) {
+            console.error('Error actualizando dashboard:', error);
+        }
+    });
+});
+
+function updateDashboard(data) {
+    // Actualizar contadores
+    document.getElementById('totalEvents').textContent = data.summary.daily_summary.total_events;
+    document.getElementById('failedEvents').textContent = data.summary.daily_summary.failed_events;
+    document.getElementById('uniqueUsers').textContent = data.summary.daily_summary.unique_users;
+    document.getElementById('uniqueIPs').textContent = data.summary.daily_summary.unique_ips;
+
+    // Actualizar tabla de eventos
+    const tbody = document.getElementById('eventsTableBody');
+    tbody.innerHTML = '';
+    data.events.forEach(event => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${new Date(event.timestamp).toLocaleString()}</td>
+            <td>${event.username}</td>
+            <td><span class="badge ${getEventTypeClass(event.event_type)}">${event.event_type}</span></td>
+            <td><span class="badge ${getStatusClass(event.status)}">${event.status}</span></td>
+            <td>${event.ip_address}</td>
+            <td>${event.details || ''}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    // Actualizar gráficos
+    updateCharts(data);
+}
+
+function getEventTypeClass(eventType) {
+    switch (eventType) {
+        case 'login': return 'bg-success';
+        case 'failed_login': return 'bg-danger';
+        case 'password_change': return 'bg-info';
+        default: return 'bg-secondary';
+    }
+}
+
+function getStatusClass(status) {
+    switch (status) {
+        case 'success': return 'bg-success';
+        case 'failure': return 'bg-danger';
+        default: return 'bg-warning';
+    }
+}
+</script>
+{% endblock %}
