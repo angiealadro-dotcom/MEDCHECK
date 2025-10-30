@@ -42,25 +42,39 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        print(f"[LOGIN] Intentando autenticar usuario: {form_data.username}")
+        user = authenticate_user(db, form_data.username, form_data.password)
+        if not user:
+            print(f"[LOGIN] Fallo de autenticación para: {form_data.username}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Usuario o contraseña incorrectos",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        print(f"[LOGIN] Usuario autenticado exitosamente: {user.username}")
+        access_token = create_access_token(data={"sub": user.username})
+        
+        # Guardar el token en una cookie HTTP-only
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,  # No accesible desde JavaScript (más seguro)
+            max_age=86400,  # 24 horas en segundos
+            samesite="lax"  # Protección CSRF
         )
-    access_token = create_access_token(data={"sub": user.username})
-    
-    # Guardar el token en una cookie HTTP-only
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,  # No accesible desde JavaScript (más seguro)
-        max_age=86400,  # 24 horas en segundos
-        samesite="lax"  # Protección CSRF
-    )
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+        
+        print(f"[LOGIN] Token creado y cookie configurada para: {user.username}")
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[LOGIN ERROR] Error inesperado: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno del servidor: {str(e)}"
+        )
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):

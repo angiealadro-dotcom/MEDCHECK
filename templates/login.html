@@ -133,7 +133,8 @@
                     messageDiv.style.display = 'block';
                 }
             } catch (error) {
-                messageDiv.textContent = 'Error de conexión';
+                console.error('Error completo:', error);
+                messageDiv.textContent = 'Error de conexión. Verifica la consola para más detalles.';
                 messageDiv.className = 'message error';
                 messageDiv.style.display = 'block';
             }
