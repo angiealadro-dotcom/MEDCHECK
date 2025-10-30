@@ -7,8 +7,100 @@
     <div class="col-md-12">
         <h2>Historial de Listas de Cotejo</h2>
         
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="filterForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Área</label>
+                        <select class="form-select" name="area" id="areaFilter">
+                            <option value="">Todas las áreas</option>
+                            {% set areas = entries|map(attribute='area')|unique|list %}
+                            {% for area in areas %}
+                            <option value="{{ area }}">{{ area }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Turno</label>
+                        <select class="form-select" name="turno" id="turnoFilter">
+                            <option value="">Todos los turnos</option>
+                            <option value="mañana">Mañana</option>
+                            <option value="tarde">Tarde</option>
+                            <option value="noche">Noche</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Etapa</label>
+                        <select class="form-select" name="etapa" id="etapaFilter">
+                            <option value="">Todas las etapas</option>
+                            <option value="prescripción">Prescripción</option>
+                            <option value="preparación">Preparación</option>
+                            <option value="administración">Administración</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Cumplimiento</label>
+                        <select class="form-select" name="cumple" id="cumpleFilter">
+                            <option value="">Todos</option>
+                            <option value="si">Solo Cumple</option>
+                            <option value="no">Solo No Cumple</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="searchBox" placeholder="Buscar en items u observaciones...">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" id="clearFilters">Limpiar Filtros</button>
+                        <button type="button" class="btn btn-primary" id="applyFilters">Aplicar Filtros</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resumen Rápido -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h6>Total Registros</h6>
+                        <h4 id="totalCount">{{ entries|length }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h6>Cumplidos</h6>
+                        <h4 id="cumplidos Count">{{ entries|selectattr('cumple')|list|length }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <h6>No Cumplidos</h6>
+                        <h4 id="noCumplidosCount">{{ entries|rejectattr('cumple')|list|length }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h6>% Cumplimiento</h6>
+                        <h4 id="porcentajeCount">
+                            {% set total = entries|length %}
+                            {% set cumplidos = entries|selectattr('cumple')|list|length %}
+                            {{ (cumplidos / total * 100)|round(1) if total > 0 else 0 }}%
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="table-responsive mt-4">
-            <table class="table table-striped">
+            <table class="table table-striped table-hover" id="historyTable">
                 <thead>
                     <tr>
                         <th>Fecha/Hora</th>
@@ -18,37 +110,138 @@
                         <th>Item</th>
                         <th>¿Cumple?</th>
                         <th>Observaciones</th>
+                        <th>Usuario</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="historyTableBody">
                     {% for entry in entries %}
-                    <tr>
+                    <tr data-area="{{ entry.area }}" 
+                        data-turno="{{ entry.turno }}" 
+                        data-etapa="{{ entry.protocolo_etapa }}"
+                        data-cumple="{{ 'si' if entry.cumple else 'no' }}"
+                        data-search="{{ (entry.item + ' ' + (entry.observaciones or ''))|lower }}">
                         <td>{{ entry.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>{{ entry.area }}</td>
-                        <td>{{ entry.turno }}</td>
+                        <td><span class="badge bg-secondary">{{ entry.turno }}</span></td>
                         <td>{{ entry.protocolo_etapa }}</td>
                         <td>{{ entry.item }}</td>
                         <td>
                             {% if entry.cumple %}
-                            <span class="badge bg-success">Sí</span>
+                            <span class="badge bg-success">✓ Sí</span>
                             {% else %}
-                            <span class="badge bg-danger">No</span>
+                            <span class="badge bg-danger">✗ No</span>
                             {% endif %}
                         </td>
-                        <td>{{ entry.observaciones or '' }}</td>
+                        <td>
+                            {% if entry.observaciones %}
+                            <small class="text-muted">{{ entry.observaciones }}</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ entry.usuario }}</small></td>
                     </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="7" class="text-center">No hay registros disponibles</td>
+                    <tr id="noDataRow">
+                        <td colspan="8" class="text-center">No hay registros disponibles</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         
-        <a href="/checklist/new" class="btn btn-primary mt-3">
-            Crear Nueva Lista de Cotejo
-        </a>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <a href="/checklist/new" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Crear Nueva Lista de Cotejo
+            </a>
+            <a href="/reports/dashboard" class="btn btn-secondary">
+                <i class="bi bi-graph-up"></i> Ver Dashboard
+            </a>
+        </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('historyTableBody');
+    const rows = Array.from(table.querySelectorAll('tr:not(#noDataRow)'));
+    
+    const areaFilter = document.getElementById('areaFilter');
+    const turnoFilter = document.getElementById('turnoFilter');
+    const etapaFilter = document.getElementById('etapaFilter');
+    const cumpleFilter = document.getElementById('cumpleFilter');
+    const searchBox = document.getElementById('searchBox');
+    
+    const totalCount = document.getElementById('totalCount');
+    const cumplidosCount = document.getElementById('cumplidosCount');
+    const noCumplidosCount = document.getElementById('noCumplidosCount');
+    const porcentajeCount = document.getElementById('porcentajeCount');
+    
+    function applyFilters() {
+        const areaValue = areaFilter.value.toLowerCase();
+        const turnoValue = turnoFilter.value.toLowerCase();
+        const etapaValue = etapaFilter.value.toLowerCase();
+        const cumpleValue = cumpleFilter.value;
+        const searchValue = searchBox.value.toLowerCase();
+        
+        let visibleCount = 0;
+        let visibleCumplidos = 0;
+        let visibleNoCumplidos = 0;
+        
+        rows.forEach(row => {
+            const area = row.dataset.area.toLowerCase();
+            const turno = row.dataset.turno.toLowerCase();
+            const etapa = row.dataset.etapa.toLowerCase();
+            const cumple = row.dataset.cumple;
+            const searchText = row.dataset.search;
+            
+            const matchesArea = !areaValue || area === areaValue;
+            const matchesTurno = !turnoValue || turno === turnoValue;
+            const matchesEtapa = !etapaValue || etapa === etapaValue;
+            const matchesCumple = !cumpleValue || cumple === cumpleValue;
+            const matchesSearch = !searchValue || searchText.includes(searchValue);
+            
+            const visible = matchesArea && matchesTurno && matchesEtapa && matchesCumple && matchesSearch;
+            
+            row.style.display = visible ? '' : 'none';
+            
+            if (visible) {
+                visibleCount++;
+                if (cumple === 'si') {
+                    visibleCumplidos++;
+                } else {
+                    visibleNoCumplidos++;
+                }
+            }
+        });
+        
+        // Actualizar contadores
+        totalCount.textContent = visibleCount;
+        cumplidosCount.textContent = visibleCumplidos;
+        noCumplidosCount.textContent = visibleNoCumplidos;
+        
+        const porcentaje = visibleCount > 0 ? ((visibleCumplidos / visibleCount) * 100).toFixed(1) : 0;
+        porcentajeCount.textContent = porcentaje + '%';
+        
+        // Mostrar mensaje si no hay resultados
+        const noDataRow = document.getElementById('noDataRow');
+        if (noDataRow) {
+            noDataRow.style.display = visibleCount === 0 ? '' : 'none';
+        }
+    }
+    
+    document.getElementById('applyFilters').addEventListener('click', applyFilters);
+    document.getElementById('clearFilters').addEventListener('click', function() {
+        areaFilter.value = '';
+        turnoFilter.value = '';
+        etapaFilter.value = '';
+        cumpleFilter.value = '';
+        searchBox.value = '';
+        applyFilters();
+    });
+    
+    // Búsqueda en tiempo real
+    searchBox.addEventListener('input', applyFilters);
+});
+</script>
 {% endblock %}

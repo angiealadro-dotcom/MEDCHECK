@@ -62,16 +62,25 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', path='js/main.js') }}"></script>
     <script>
-    // Logout simple: borrar token del almacenamiento local
+    // Logout: llamar al endpoint de logout para eliminar la cookie
     document.addEventListener('DOMContentLoaded', () => {
         const logout = document.getElementById('logoutLink');
         if (logout) {
-            logout.addEventListener('click', (e) => {
+            logout.addEventListener('click', async (e) => {
                 e.preventDefault();
                 try {
+                    // Llamar al endpoint de logout
+                    await fetch('/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    // Limpiar localStorage también (por si acaso)
                     localStorage.removeItem('access_token');
-                } catch {}
-                window.location.href = '/';
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                }
+                // Redirigir al login
+                window.location.href = '/login';
             });
         }
     });

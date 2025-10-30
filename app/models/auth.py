@@ -9,7 +9,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    role: str = "enfermero"  # roles: admin, supervisor, enfermero
+    is_admin: bool = False  # Compatible con SQLAlchemy User model
 
 class UserLogin(BaseModel):
     username: str
@@ -17,8 +17,13 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: int
-    role: str
+    is_admin: bool = False  # Compatible con SQLAlchemy User model
     is_active: bool = True
+    
+    # Propiedad de compatibilidad
+    @property
+    def role(self) -> str:
+        return "admin" if self.is_admin else "enfermero"
 
     class Config:
         from_attributes = True

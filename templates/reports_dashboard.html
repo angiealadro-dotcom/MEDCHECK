@@ -16,7 +16,9 @@
                         <label class="form-label">Área</label>
                         <select class="form-select" name="area">
                             <option value="">Todas las áreas</option>
-                            <option value="{{ area_filtrada }}" {% if area_filtrada %}selected{% endif %}>{{ area_filtrada }}</option>
+                            {% for area_option in areas_disponibles %}
+                            <option value="{{ area_option }}" {% if area_filtrada == area_option %}selected{% endif %}>{{ area_option }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     {% endif %}
@@ -40,43 +42,83 @@
             <div class="col-md-3">
                 <div class="card bg-primary text-white">
                     <div class="card-body">
-                        <h5 class="card-title">Total Registros</h5>
-                        <h2>{{ summary.total_registros }}</h2>
+                        <h5 class="card-title">Total Items</h5>
+                        <h2>{{ summary.total_items if summary else 0 }}</h2>
+                        <small>{{ summary.periodo_desde if summary }} - {{ summary.periodo_hasta if summary }}</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card {% if summary.cumplimiento_porcentaje >= 90 %}bg-success{% elif summary.cumplimiento_porcentaje >= 70 %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                <div class="card {% if summary and summary.porcentaje_cumplimiento >= 90 %}bg-success{% elif summary and summary.porcentaje_cumplimiento >= 70 %}bg-warning{% else %}bg-danger{% endif %} text-white">
                     <div class="card-body">
-                        <h5 class="card-title">Cumplimiento</h5>
-                        <h2>{{ "%.1f"|format(summary.cumplimiento_porcentaje) }}%</h2>
+                        <h5 class="card-title">Cumplimiento General</h5>
+                        <h2>{{ summary.porcentaje_cumplimiento if summary else 0 }}%</h2>
+                        <small>Meta: 95%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Items Cumplidos</h5>
+                        <h2>{{ summary.items_cumplidos if summary else 0 }}</h2>
+                        <small>de {{ summary.total_items if summary else 0 }}</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card bg-info text-white">
                     <div class="card-body">
-                        <h5 class="card-title">Áreas Activas</h5>
-                        <h2>{{ summary.total_areas }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-secondary text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Etapas</h5>
-                        <h2>{{ summary.total_etapas }}</h2>
+                        <h5 class="card-title">Periodo</h5>
+                        <h2>{{ periodo }}</h2>
+                        <small>Filtro activo</small>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Cumplimiento por Etapa -->
+        {% if summary and summary.cumplimiento_por_etapa %}
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Detalle por Etapa del Protocolo</h5>
+                        <div class="row">
+                            {% for etapa, datos in summary.cumplimiento_por_etapa.items() %}
+                            <div class="col-md-4">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <strong>{{ etapa|capitalize }}</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <h3 class="{% if datos.porcentaje >= 90 %}text-success{% elif datos.porcentaje >= 70 %}text-warning{% else %}text-danger{% endif %}">
+                                            {{ datos.porcentaje }}%
+                                        </h3>
+                                        <p class="mb-0">{{ datos.cumplidos }} de {{ datos.total }} items</p>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar {% if datos.porcentaje >= 90 %}bg-success{% elif datos.porcentaje >= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 role="progressbar" 
+                                                 style="width: {{ datos.porcentaje }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Gráficos -->
-        <div class="row">
+        <div class="row mb-4">
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Tendencia de Cumplimiento</h5>
+                        <h5 class="card-title">Cumplimiento por Etapa</h5>
                         <canvas id="cumplimientoChart"></canvas>
                     </div>
                 </div>
@@ -84,116 +126,102 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Cumplimiento por Área</h5>
+                        <h5 class="card-title">Distribución General</h5>
                         <canvas id="areasPieChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Tabla de Anomalías -->
-{% if current_user and current_user.role in ["admin", "supervisor"] %}
-<!-- Comparación de Turnos -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Comparación de Turnos</h5>
-                <canvas id="turnosChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Items Críticos -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Items Críticos que Requieren Atención</h5>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Área</th>
-                                <th>Etapa</th>
-                                <th>Item</th>
-                                <th>Cumplimiento</th>
-                                <th>Última Revisión</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="criticalItemsTable">
-                            <!-- Se llenará con JavaScript -->
-                        </tbody>
-                    </table>
+        <!-- Últimas Entradas -->
+        {% if entries %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Últimas 50 Verificaciones</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Área</th>
+                                        <th>Turno</th>
+                                        <th>Etapa</th>
+                                        <th>Item</th>
+                                        <th>Estado</th>
+                                        <th>Usuario</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in entries[:50] %}
+                                    <tr>
+                                        <td>{{ entry.fecha_hora.strftime('%Y-%m-%d %H:%M') if entry.fecha_hora else 'N/A' }}</td>
+                                        <td>{{ entry.area }}</td>
+                                        <td><span class="badge bg-secondary">{{ entry.turno }}</span></td>
+                                        <td>{{ entry.protocolo_etapa }}</td>
+                                        <td>{{ entry.item }}</td>
+                                        <td>
+                                            {% if entry.cumple %}
+                                            <span class="badge bg-success">✓ Cumple</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">✗ No cumple</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ entry.usuario }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Anomalías -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Alertas de Anomalías</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Área</th>
-                                <th>Etapa</th>
-                                <th>Cumplimiento Actual</th>
-                                <th>Promedio Histórico</th>
-                                <th>Variación</th>
-                            </tr>
-                        </thead>
-                        <tbody id="anomaliasTableBody">
-                            <!-- Se llena dinámicamente con JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>No hay datos disponibles</strong> para el periodo seleccionado.
         </div>
+        {% endif %}
     </div>
 </div>
-{% endif %}
-{% endblock %}
 
-{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async function() {
-    // Inicializar gráficos
-    const cumplimientoCtx = document.getElementById('cumplimientoChart').getContext('2d');
-    const areasPieCtx = document.getElementById('areasPieChart').getContext('2d');
-    const turnosCtx = document.getElementById('turnosChart')?.getContext('2d');
+document.addEventListener('DOMContentLoaded', function() {
+    const cumplimientoCtx = document.getElementById('cumplimientoChart');
+    const areasPieCtx = document.getElementById('areasPieChart');
     
-    // Cargar datos
-    const area = document.querySelector('select[name="area"]')?.value || '';
-    const periodo = document.querySelector('select[name="periodo"]').value;
+    // Datos del servidor
+    const summary = {{ summary|tojson if summary else '{}' }};
+    const cumplimientoPorEtapa = summary.cumplimiento_por_etapa || {};
     
-    // Cargar tendencias
-    const trendsResponse = await fetch(`/reports/compliance-trends?area=${area}&periodo=${periodo}`);
-    const trendsData = await trendsResponse.json();
-    const trendLabels = trendsData.labels || ["Lun", "Mar", "Mié", "Jue", "Vie"];
-    const trendValues = trendsData.data || [0, 0, 0, 0, 0];
+    // Gráfico de cumplimiento por etapa
+    const etapas = ['prescripción', 'preparación', 'administración'];
+    const cumplimientoData = etapas.map(etapa => 
+        cumplimientoPorEtapa[etapa] ? cumplimientoPorEtapa[etapa].porcentaje : 0
+    );
     
-    // Gráfico de tendencia
     new Chart(cumplimientoCtx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: trendLabels,
+            labels: ['Prescripción', 'Preparación', 'Administración'],
             datasets: [{
-                label: '% Cumplimiento',
-                data: trendValues,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
+                label: '% Cumplimiento por Etapa',
+                data: cumplimientoData,
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 205, 86, 0.6)'
+                ],
+                borderColor: [
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)'
+                ],
+                borderWidth: 2
             }]
         },
         options: {
@@ -201,131 +229,67 @@ document.addEventListener('DOMContentLoaded', async function() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 100
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
                 }
             }
         }
     });
     
-    // Cargar datos de áreas
-    const summaryResponse = await fetch(`/reports/summary?area=${area}`);
-    const summaryData = await summaryResponse.json();
+    // Gráfico de pie (general vs no cumplido)
+    const cumplidos = summary.items_cumplidos || 0;
+    const noCumplidos = (summary.total_items || 0) - cumplidos;
     
-    // Gráfico de áreas
     new Chart(areasPieCtx, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
-            labels: ['UCI', 'Emergencia', 'Medicina', 'Cirugía'],
+            labels: ['Cumplidos', 'No Cumplidos'],
             datasets: [{
-                data: [95, 88, 85, 92],
+                data: [cumplidos, noCumplidos],
                 backgroundColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)'
-                ]
+                    'rgb(75, 192, 192)',
+                    'rgb(255, 99, 132)'
+                ],
+                borderWidth: 2
             }]
-        }
-    });
-    
-    // Gráfico de comparación de turnos
-    if (turnosCtx) {
-    const turnosResponse = await fetch(`/reports/turnos-comparison?area=${area}&periodo=${periodo}`);
-    const turnosData = await turnosResponse.json();
-    const turnosLabels = turnosData.labels || ["Mañana", "Tarde", "Noche"];
-    const turnosValues = turnosData.data || [0, 0, 0];
-        
-        new Chart(turnosCtx, {
-            type: 'bar',
-            data: {
-                labels: turnosLabels,
-                datasets: [{
-                    label: '% Cumplimiento por Turno',
-                    data: turnosValues,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.5)',
-                        'rgba(54, 162, 235, 0.5)',
-                        'rgba(255, 205, 86, 0.5)'
-                    ],
-                    borderColor: [
-                        'rgb(255, 99, 132)',
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 205, 86)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
                     }
                 }
             }
+        }
+    });
+    
+    // Manejar envío del formulario de filtros
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(filterForm);
+            const params = new URLSearchParams(formData);
+            window.location.href = `/reports/dashboard?${params.toString()}`;
         });
-    }
-
-    // Cargar items críticos
-    try {
-        const criticalResponse = await fetch(`/reports/critical-items?area=${area}&periodo=${periodo}`);
-        if (criticalResponse.ok) {
-            const criticalData = await criticalResponse.json();
-            const tbody = document.getElementById('criticalItemsTable');
-            tbody.innerHTML = ''; // Limpiar tabla
-            
-            criticalData.forEach(item => {
-                const row = document.createElement('tr');
-                const statusClass = item.cumplimiento < 70 ? 'text-danger' : 
-                                  item.cumplimiento < 90 ? 'text-warning' : 'text-success';
-                row.innerHTML = `
-                    <td>${item.area}</td>
-                    <td>${item.etapa}</td>
-                    <td>${item.item}</td>
-                    <td class="${statusClass}">${item.cumplimiento}%</td>
-                    <td>${new Date(item.ultima_revision).toLocaleDateString()}</td>
-                    <td><span class="badge bg-${statusClass.split('-')[1]}">${
-                        item.cumplimiento < 70 ? 'Crítico' : 
-                        item.cumplimiento < 90 ? 'Atención' : 'Normal'
-                    }</span></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-    } catch (error) {
-        console.error('Error al cargar items críticos:', error);
-    }
-
-    // Cargar anomalías
-    try {
-        const response = await fetch('/reports/anomalies');
-        if (response.ok) {
-            const data = await response.json();
-            const tbody = document.getElementById('anomaliasTableBody');
-            tbody.innerHTML = ''; // Limpiar tabla
-            
-            data.anomalies.forEach(anomaly => {
-                const row = document.createElement('tr');
-                const variacion = (anomaly.promedio_historico - anomaly.cumplimiento_actual) * 100;
-                const variacionClass = variacion > 20 ? 'text-danger' : 
-                                     variacion > 10 ? 'text-warning' : 'text-success';
-                
-                row.innerHTML = `
-                    <td>${anomaly.area}</td>
-                    <td>${anomaly.protocolo_etapa}</td>
-                    <td class="${variacionClass}">${(anomaly.cumplimiento_actual * 100).toFixed(1)}%</td>
-                    <td>${(anomaly.promedio_historico * 100).toFixed(1)}%</td>
-                    <td class="${variacionClass}">-${variacion.toFixed(1)}%</td>
-                    <td>${(anomaly.cumplimiento_actual * 100).toFixed(1)}%</td>
-                    <td>${(anomaly.promedio_historico * 100).toFixed(1)}%</td>
-                    <td class="text-danger">-${variacion.toFixed(1)}%</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-    } catch (error) {
-        console.error('Error cargando anomalías:', error);
     }
 });
 </script>

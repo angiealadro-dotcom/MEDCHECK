@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -37,7 +37,11 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 @router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(
+    response: Response, 
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    db: Session = Depends(get_db)
+):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -46,6 +50,16 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(data={"sub": user.username})
+    
+    # Guardar el token en una cookie HTTP-only
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,  # No accesible desde JavaScript (más seguro)
+        max_age=86400,  # 24 horas en segundos
+        samesite="lax"  # Protección CSRF
+    )
+    
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/register", response_model=UserResponse)
@@ -73,3 +87,11 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
+
+@router.post("/logout")
+async def logout(response: Response):
+    """
+    Cerrar sesión eliminando la cookie del token
+    """
+    response.delete_cookie(key="access_token")
+    return {"message": "Sesión cerrada exitosamente"}
