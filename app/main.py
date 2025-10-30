@@ -77,6 +77,60 @@ async def startup_event():
 async def health_check():
     return {"status": "healthy", "app": settings.app_name}
 
+# Endpoint temporal para crear usuario admin (solo funciona si no existe)
+@app.get("/setup-admin")
+async def setup_admin():
+    from app.db.database import SessionLocal
+    from app.models.user import User
+    from passlib.context import CryptContext
+    
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    db = SessionLocal()
+    
+    try:
+        # Verificar si ya existe un admin
+        existing_admin = db.query(User).filter(User.username == "admin").first()
+        if existing_admin:
+            return {
+                "status": "already_exists",
+                "message": "El usuario admin ya existe",
+                "username": existing_admin.username,
+                "email": existing_admin.email
+            }
+        
+        # Crear nuevo usuario admin
+        hashed_password = pwd_context.hash("Admin123!")
+        admin = User(
+            username="admin",
+            email="admin@medcheck.com",
+            hashed_password=hashed_password,
+            full_name="Administrador del Sistema",
+            is_active=True,
+            is_admin=True
+        )
+        
+        db.add(admin)
+        db.commit()
+        db.refresh(admin)
+        
+        return {
+            "status": "success",
+            "message": "Usuario administrador creado exitosamente",
+            "username": "admin",
+            "password": "Admin123!",
+            "email": admin.email,
+            "login_url": "/login"
+        }
+        
+    except Exception as e:
+        db.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+    finally:
+        db.close()
+
 # Ruta de diagnóstico para listar endpoints disponibles
 @app.get("/debug/routes")
 async def debug_routes():
