@@ -1,63 +1,12 @@
-﻿<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedCheck - Sistema de Verificación Médica</title>
+﻿{% extends "base.html" %}
+
+{% block title %}MedCheck - Inicio{% endblock %}
+
+{% block head_extras %}
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .logo-icon {
-            font-size: 48px;
-        }
-        .logo h1 {
-            color: #667eea;
-            font-size: 32px;
-            font-weight: 700;
-        }
-        nav {
-            display: flex;
-            gap: 20px;
-        }
-        nav a {
-            color: #555;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-        nav a:hover {
-            background: #667eea;
-            color: white;
         }
         .hero {
             background: rgba(255, 255, 255, 0.95);
@@ -174,17 +123,7 @@
             margin-bottom: 8px;
             font-size: 18px;
         }
-        footer {
-            text-align: center;
-            color: white;
-            padding: 30px;
-            margin-top: 40px;
-        }
         @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 20px;
-            }
             .hero {
                 padding: 40px 20px;
             }
@@ -196,21 +135,9 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <span class="logo-icon"></span>
-                <h1>MedCheck</h1>
-            </div>
-            <nav>
-                <a href="#inicio">Inicio</a>
-                <a href="#funciones">Funciones</a>
-                <a href="#acerca">Acerca de</a>
-                <a href="/login">Iniciar Sesión</a>
-            </nav>
-        </header>
+{% endblock %}
+
+{% block content %}
         <div class="hero">
             <h2>Sistema Inteligente de Verificación Médica</h2>
             <p>Garantiza la seguridad del paciente mediante la verificación sistemática de buenas prácticas en la administración de medicamentos</p>
@@ -266,10 +193,4 @@
                 </li>
             </ul>
         </div>
-        <footer>
-            <p>&copy; 2025 MedCheck - Sistema de Verificación de Buenas Prácticas Médicas</p>
-            <p style="margin-top: 10px; opacity: 0.8;">Desarrollado con tecnología FastAPI + Python</p>
-        </footer>
-    </div>
-</body>
-</html>
+{% endblock %}
