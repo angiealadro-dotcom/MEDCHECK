@@ -11,7 +11,7 @@ from app.config import settings
 app = FastAPI(
     title=settings.app_name,
     description="Sistema de verificación de buenas prácticas en la administración de medicamentos",
-    version="1.0.0"
+    version="1.0.1"  # Actualizado para forzar redeploy
 )
 
 # Configuración de CORS
