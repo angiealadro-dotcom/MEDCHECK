@@ -77,29 +77,35 @@ async def startup_event():
 async def health_check():
     return {"status": "healthy", "app": settings.app_name}
 
-# Endpoint temporal para crear usuario admin (solo funciona si no existe)
+# Endpoint temporal para crear usuario admin (elimina el existente si hay problemas)
 @app.get("/setup-admin")
-async def setup_admin():
+async def setup_admin(force: bool = False):
     from app.db.database import SessionLocal
     from app.models.user import User
-    from passlib.context import CryptContext
+    from app.auth.users import get_password_hash
     
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     db = SessionLocal()
     
     try:
         # Verificar si ya existe un admin
         existing_admin = db.query(User).filter(User.username == "admin").first()
-        if existing_admin:
+        
+        if existing_admin and not force:
             return {
                 "status": "already_exists",
-                "message": "El usuario admin ya existe",
+                "message": "El usuario admin ya existe. Usa ?force=true para recrearlo",
                 "username": existing_admin.username,
-                "email": existing_admin.email
+                "email": existing_admin.email,
+                "hint": "Si tienes problemas de login, visita: /setup-admin?force=true"
             }
         
-        # Crear nuevo usuario admin
-        hashed_password = pwd_context.hash("Admin123!")
+        # Si force=true, eliminar el admin existente
+        if existing_admin:
+            db.delete(existing_admin)
+            db.commit()
+        
+        # Crear nuevo usuario admin con el fix de bcrypt
+        hashed_password = get_password_hash("Admin123!")
         admin = User(
             username="admin",
             email="admin@medcheck.com",
@@ -115,11 +121,12 @@ async def setup_admin():
         
         return {
             "status": "success",
-            "message": "Usuario administrador creado exitosamente",
+            "message": "Usuario administrador creado exitosamente con el fix de bcrypt",
             "username": "admin",
             "password": "Admin123!",
             "email": admin.email,
-            "login_url": "/login"
+            "login_url": "/login",
+            "recreated": existing_admin is not None
         }
         
     except Exception as e:
