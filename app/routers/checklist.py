@@ -5,6 +5,9 @@ from typing import List, Optional
 from datetime import datetime
 from app.models.schemas import ChecklistEntry, ChecklistForm
 from app.services.snowflake_service import SnowflakeService
+from app.services.checklist_sqlite_service import create_entries_from_form, get_recent_entries
+from app.db.database import get_db
+from sqlalchemy.orm import Session
 from app.security.auth_deps import get_current_user
 from app.models.auth import User
 
@@ -25,16 +28,16 @@ async def new_checklist_form(
     )
 
 @router.post("/")
-async def create_checklist_entry(entry: ChecklistForm):
+async def create_checklist_entry(entry: ChecklistForm, db: Session = Depends(get_db)):
     """
     Crear un nuevo registro de lista de cotejo (modo demo)
     """
-    # Placeholder: aquí podríamos guardar en SQLite o enviar a Snowflake.
-    # Por ahora, simplemente devolvemos éxito con eco de datos recibidos.
+    # Guardar en SQLite (modo demo)
+    created = create_entries_from_form(db, entry, username="demo")
     return {
         "status": "success",
-        "message": "Registros creados correctamente (demo)",
-        "data": entry.model_dump() if hasattr(entry, "model_dump") else entry
+        "message": f"{len(created)} registros creados correctamente",
+        "count": len(created)
     }
 
 @router.get("/history", response_class=HTMLResponse)
@@ -42,13 +45,14 @@ async def get_checklist_history(
     request: Request,
     area: Optional[str] = None,
     desde: Optional[datetime] = None,
-    hasta: Optional[datetime] = None
+    hasta: Optional[datetime] = None,
+    db: Session = Depends(get_db)
 ):
     """
     Mostrar historial de listas de cotejo
     """
-    # Por ahora retornar una lista vacía si no hay usuario
-    entries = []
+    # Cargar últimos registros desde SQLite (modo demo)
+    entries = get_recent_entries(db, limit=200)
     current_user = None
     
     return templates.TemplateResponse(

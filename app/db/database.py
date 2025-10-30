@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.user import Base
+# Importar modelos para registrarlos en la metadata (no borrar)
+from app.models.checklist_entry import ChecklistEntrySQL  # noqa: F401
 from app.config import settings
 
 # Crear base engine SQLite
@@ -17,5 +19,4 @@ def get_db():
 
 # Crear tablas
 def create_tables():
-    Base.metadata.create_all(bind=engine)
     Base.metadata.create_all(bind=engine)
