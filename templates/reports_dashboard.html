@@ -11,7 +11,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <form id="filterForm" class="row g-3">
-                    {% if current_user.role == "admin" %}
+                    {% if current_user and current_user.role == "admin" %}
                     <div class="col-md-4">
                         <label class="form-label">Área</label>
                         <select class="form-select" name="area">
@@ -94,7 +94,7 @@
 </div>
 
 <!-- Tabla de Anomalías -->
-{% if current_user.role in ["admin", "supervisor"] %}
+{% if current_user and current_user.role in ["admin", "supervisor"] %}
 <!-- Comparación de Turnos -->
 <div class="row mb-4">
     <div class="col-md-12">
@@ -181,15 +181,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Cargar tendencias
     const trendsResponse = await fetch(`/reports/compliance-trends?area=${area}&periodo=${periodo}`);
     const trendsData = await trendsResponse.json();
+    const trendLabels = trendsData.labels || ["Lun", "Mar", "Mié", "Jue", "Vie"];
+    const trendValues = trendsData.data || [0, 0, 0, 0, 0];
     
     // Gráfico de tendencia
     new Chart(cumplimientoCtx, {
         type: 'line',
         data: {
-            labels: trendsData.labels,
+            labels: trendLabels,
             datasets: [{
                 label: '% Cumplimiento',
-                data: trendsData.data,
+                data: trendValues,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }]
@@ -228,16 +230,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Gráfico de comparación de turnos
     if (turnosCtx) {
-        const turnosResponse = await fetch(`/reports/turnos-comparison?area=${area}&periodo=${periodo}`);
-        const turnosData = await turnosResponse.json();
+    const turnosResponse = await fetch(`/reports/turnos-comparison?area=${area}&periodo=${periodo}`);
+    const turnosData = await turnosResponse.json();
+    const turnosLabels = turnosData.labels || ["Mañana", "Tarde", "Noche"];
+    const turnosValues = turnosData.data || [0, 0, 0];
         
         new Chart(turnosCtx, {
             type: 'bar',
             data: {
-                labels: turnosData.labels,
+                labels: turnosLabels,
                 datasets: [{
                     label: '% Cumplimiento por Turno',
-                    data: turnosData.data,
+                    data: turnosValues,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.5)',
                         'rgba(54, 162, 235, 0.5)',
