@@ -25,24 +25,17 @@ async def new_checklist_form(
     )
 
 @router.post("/")
-async def create_checklist_entry(
-    entry: ChecklistForm,
-    current_user: User = Depends(get_current_user)
-):
+async def create_checklist_entry(entry: ChecklistForm):
     """
-    Crear un nuevo registro de lista de cotejo
+    Crear un nuevo registro de lista de cotejo (modo demo)
     """
-    # Verificar permisos basados en rol
-    if current_user.role not in ["enfermero", "supervisor", "admin"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tiene permisos para crear registros"
-        )
-
-    success = await SnowflakeService.create_checklist_entries(entry, current_user.username)
-    if success:
-        return {"status": "success", "message": "Registros creados correctamente"}
-    raise HTTPException(status_code=400, detail="Error al crear registros")
+    # Placeholder: aquí podríamos guardar en SQLite o enviar a Snowflake.
+    # Por ahora, simplemente devolvemos éxito con eco de datos recibidos.
+    return {
+        "status": "success",
+        "message": "Registros creados correctamente (demo)",
+        "data": entry.model_dump() if hasattr(entry, "model_dump") else entry
+    }
 
 @router.get("/history", response_class=HTMLResponse)
 async def get_checklist_history(
