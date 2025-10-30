@@ -61,3 +61,14 @@ async def startup_event():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "app": settings.app_name}
+
+# Ruta de diagnóstico para listar endpoints disponibles
+@app.get("/debug/routes")
+async def debug_routes():
+    try:
+        return [
+            {"path": r.path, "name": getattr(r, "name", None)}
+            for r in app.routes
+        ]
+    except Exception as e:
+        return {"error": str(e)}
