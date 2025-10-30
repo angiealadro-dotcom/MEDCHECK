@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from app.db.database import create_tables
 from app.routers import auth_simple, checklist, reports
@@ -12,7 +12,7 @@ from app.config import settings
 app = FastAPI(
     title=settings.app_name,
     description="Sistema de verificación de buenas prácticas en la administración de medicamentos",
-    version="1.0.2"  # Bump version para incluir redirect en 401
+    version="1.0.3"  # Fix para producción
 )
 
 # Exception handler para redirigir a login en caso de 401
@@ -24,7 +24,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         if "text/html" in accept_header:
             return RedirectResponse(url="/login?next=" + str(request.url.path), status_code=302)
     # Para otros casos, retornar el error JSON normal
-    from fastapi.responses import JSONResponse
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail}
