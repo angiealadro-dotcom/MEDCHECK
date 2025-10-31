@@ -46,9 +46,9 @@ def create_admin():
         print(f"   Es Admin: {admin.is_admin}")
         print("")
         print("🔗 Para iniciar sesión, ve a:")
-    # Detectar puerto local (por defecto usamos 8001 que es el que usamos en desarrollo)
-    port = os.getenv("APP_PORT") or os.getenv("PORT") or "8001"
-    print(f"   http://localhost:{port}/login")
+        # Detectar puerto local (por defecto usamos 8001 que es el que usamos en desarrollo)
+        port = os.getenv("APP_PORT") or os.getenv("PORT") or "8001"
+        print(f"   http://localhost:{port}/login")
         
     except Exception as e:
         db.rollback()
