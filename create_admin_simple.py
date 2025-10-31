@@ -1,6 +1,7 @@
 """
 Script para crear usuario administrador en SQLite
 """
+import os
 from app.db.database import SessionLocal, engine, Base
 from app.models.user import User
 from passlib.context import CryptContext
@@ -45,7 +46,9 @@ def create_admin():
         print(f"   Es Admin: {admin.is_admin}")
         print("")
         print("🔗 Para iniciar sesión, ve a:")
-        print("   http://localhost:8000/login")
+    # Detectar puerto local (por defecto usamos 8001 que es el que usamos en desarrollo)
+    port = os.getenv("APP_PORT") or os.getenv("PORT") or "8001"
+    print(f"   http://localhost:{port}/login")
         
     except Exception as e:
         db.rollback()
