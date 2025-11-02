@@ -30,8 +30,11 @@
                             <option value="90d" {% if periodo == "90d" %}selected{% endif %}>Últimos 90 días</option>
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-4 d-flex align-items-end justify-content-between">
                         <button type="submit" class="btn btn-primary">Actualizar</button>
+                        <div class="btn-group">
+                            <button type="button" id="exportPdf" class="btn btn-outline-secondary">Exportar PDF</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -289,6 +292,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(filterForm);
             const params = new URLSearchParams(formData);
             window.location.href = `/reports/dashboard?${params.toString()}`;
+        });
+    }
+
+    // Exportar PDF respetando filtros (área y periodo)
+    const exportBtn = document.getElementById('exportPdf');
+    if (exportBtn && filterForm) {
+        exportBtn.addEventListener('click', () => {
+            const formData = new FormData(filterForm);
+            const area = formData.get('area') || '';
+            const periodo = formData.get('periodo') || '30d';
+            // Calcular desde/hasta en frontend
+            const now = new Date();
+            let days = 30;
+            if (periodo === '7d') days = 7; else if (periodo === '90d') days = 90;
+            const desde = new Date(now.getTime() - days*24*60*60*1000);
+            const toISO = d => d.toISOString();
+            const params = new URLSearchParams();
+            if (area) params.set('area', area);
+            params.set('desde', toISO(desde));
+            params.set('hasta', toISO(now));
+            window.location.href = `/reports/export/pdf?${params.toString()}`;
         });
     }
 });

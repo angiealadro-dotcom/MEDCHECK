@@ -59,6 +59,14 @@
             </div>
         </div>
 
+        <!-- Acciones / Exportación -->
+        <div class="d-flex justify-content-end mb-2">
+            <div class="btn-group" role="group" aria-label="Export">
+                <button type="button" id="exportExcel" class="btn btn-success btn-sm">Exportar Excel</button>
+                <button type="button" id="exportCsv" class="btn btn-outline-secondary btn-sm">Exportar CSV</button>
+            </div>
+        </div>
+
         <!-- Resumen Rápido -->
         <div class="row mb-3">
             <div class="col-md-3">
@@ -73,7 +81,7 @@
                 <div class="card bg-success text-white">
                     <div class="card-body text-center">
                         <h6>Cumplidos</h6>
-                        <h4 id="cumplidos Count">{{ entries|selectattr('cumple')|list|length }}</h4>
+                        <h4 id="cumplidosCount">{{ entries|selectattr('cumple')|list|length }}</h4>
                     </div>
                 </div>
             </div>
@@ -242,6 +250,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Búsqueda en tiempo real
     searchBox.addEventListener('input', applyFilters);
+
+    // Utilidad para construir query con filtros actuales
+    function buildQueryParams() {
+        const params = new URLSearchParams();
+        if (areaFilter.value) params.set('area', areaFilter.value);
+        // Opcionalmente, podríamos añadir desde/hasta si existieran inputs de fecha
+        return params.toString();
+    }
+
+    // Exportar Excel
+    document.getElementById('exportExcel').addEventListener('click', function() {
+        const q = buildQueryParams();
+        const url = q ? `/checklist/export/excel?${q}` : '/checklist/export/excel';
+        window.location.href = url;
+    });
+
+    // Exportar CSV
+    document.getElementById('exportCsv').addEventListener('click', function() {
+        const q = buildQueryParams();
+        const url = q ? `/checklist/export/csv?${q}` : '/checklist/export/csv';
+        window.location.href = url;
+    });
 });
 </script>
 {% endblock %}
