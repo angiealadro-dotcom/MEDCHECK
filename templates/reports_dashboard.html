@@ -408,6 +408,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await res.json();
             renderRecommendations(data.recomendaciones || []);
+            
+            // Añadir aviso si la voz no está habilitada
+            checkVoiceAvailabilityForPanel();
         } catch (error) {
             console.error('Error loading recommendations:', error);
             container.innerHTML = `
@@ -416,6 +419,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     <small>No se pudieron cargar las recomendaciones</small>
                 </div>
             `;
+        }
+    }
+
+    async function checkVoiceAvailabilityForPanel() {
+        try {
+            const res = await fetch('/reports/voice-status');
+            const data = await res.json();
+            if (!data.enabled) {
+                const container = document.getElementById('recommendationsContainer');
+                const voiceNotice = `
+                    <div class="card recommendation-card info p-3 mb-2">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-info-circle me-2 mt-1" style="font-size: 1.2rem;"></i>
+                            <div class="flex-grow-1">
+                                <strong class="d-block mb-1">Activar Resumen por Voz</strong>
+                                <small class="text-muted">Para escuchar el resumen del reporte en audio, configura <code>ELEVENLABS_API_KEY</code> en Render > Environment y redepliega el servicio.</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += voiceNotice;
+            }
+        } catch (error) {
+            // Silenciar error si el endpoint no está disponible
         }
     }
 
