@@ -1,144 +1,67 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - MedCheck</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 400px;
-        }
-        .login-container h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn:hover {
-            background: #5568d3;
-        }
-        .message {
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            display: none;
-        }
-        .message.error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
-        }
-        .message.success {
-            background: #efe;
-            color: #3c3;
-            border: 1px solid #cfc;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>🏥 MedCheck</h1>
-        <div id="message" class="message"></div>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Usuario</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn">Iniciar Sesión</button>
-        </form>
-    </div>
+{% extends "base.html" %}
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
-            
-            try {
-                const formData = new FormData();
-                formData.append('username', username);
-                formData.append('password', password);
-                
-                const response = await fetch('/auth/login', {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'include'  // Importante para que envíe/reciba cookies
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    messageDiv.textContent = '¡Login exitoso! Redirigiendo...';
-                    messageDiv.className = 'message success';
-                    messageDiv.style.display = 'block';
-                    
-                    // Esperar un momento y redirigir
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 500);
-                } else {
-                    const error = await response.json();
-                    messageDiv.textContent = error.detail || 'Error al iniciar sesión';
-                    messageDiv.className = 'message error';
-                    messageDiv.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error completo:', error);
-                messageDiv.textContent = 'Error de conexión. Verifica la consola para más detalles.';
-                messageDiv.className = 'message error';
-                messageDiv.style.display = 'block';
-            }
-        });
-    </script>
-</body>
-</html>
+{% block title %}Iniciar sesión - MedCheck{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+  <div class="card p-4 p-md-5 shadow-lg" style="max-width: 420px; width: 100%; border-radius: 16px;">
+    <div class="text-center mb-3">
+      <img src="{{ url_for('static', path='img/logo.png') }}" alt="MedCheck" width="64" height="64" class="brand-logo">
+      <h3 class="mt-2 mb-0" style="color: var(--brand-navy); font-weight: 700;">MedCheck</h3>
+      <small class="text-muted">Accede a tu cuenta</small>
+    </div>
+    <div id="message" class="alert d-none" role="alert"></div>
+    <form id="loginForm" class="mt-2">
+      <div class="mb-3">
+        <label for="username" class="form-label">Usuario</label>
+        <input type="text" id="username" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Iniciar sesión</button>
+    </form>
+  </div>
+  
+</div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const messageDiv = document.getElementById('message');
+
+    try {
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+
+      const response = await fetch('/auth/login', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        messageDiv.textContent = '¡Login exitoso! Redirigiendo...';
+        messageDiv.className = 'alert alert-success';
+        messageDiv.classList.remove('d-none');
+        setTimeout(() => { window.location.href = '/'; }, 500);
+      } else {
+        const error = await response.json();
+        messageDiv.textContent = error.detail || 'Error al iniciar sesión';
+        messageDiv.className = 'alert alert-danger';
+        messageDiv.classList.remove('d-none');
+      }
+    } catch (error) {
+      console.error('Error completo:', error);
+      messageDiv.textContent = 'Error de conexión. Verifica tu red.';
+      messageDiv.className = 'alert alert-danger';
+      messageDiv.classList.remove('d-none');
+    }
+  });
+</script>
+
+{% endblock %}
