@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
-from app.db.database import create_tables
+from app.db.database import create_tables, SessionLocal
 from app.routers import auth_simple, checklist, reports
 from app.routers import alerts_sqlite as alerts
 from app.config import settings
@@ -70,7 +70,33 @@ async def login_page(request: Request):
 # Inicialización de la base de datos
 @app.on_event("startup")
 async def startup_event():
+    # Crear tablas
     create_tables()
+
+    # Asegurar un usuario admin por defecto en un arranque limpio (si no hay usuarios)
+    try:
+        from app.models.user import User
+        db = SessionLocal()
+        users_count = db.query(User).count()
+        if users_count == 0:
+            # Hash precomputado de "Admin123!" (bcrypt $2b$12)
+            hashed_password = "$2b$12$stqmrbQjNtvsb.HqdDcnbeYPo853D3o.N.Lti6dwyQ2YSDn5pKqmS"
+            admin = User(
+                username="admin",
+                email="admin@medcheck.com",
+                hashed_password=hashed_password,
+                full_name="Administrador del Sistema",
+                is_active=True,
+                is_admin=True,
+            )
+            db.add(admin)
+            db.commit()
+            print("👑 Usuario admin creado automáticamente (admin / Admin123!)")
+        db.close()
+    except Exception as e:
+        # No bloquear el arranque por este paso; solo loguear
+        print(f"[startup][ensure_admin][warn] {e}")
+
     print(f"✅ {settings.app_name} iniciado correctamente")
     print(f"📊 Base de datos: {settings.database_url}")
     print(f"🌍 Entorno: {settings.environment}")
