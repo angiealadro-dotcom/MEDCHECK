@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from typing import Optional
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from datetime import datetime, timedelta
 from app.services.snowflake_service import SnowflakeService
 from app.services.reporting_service import ReportingService
+from app.services.export_service import ExportService
 from app.auth.users import get_current_active_user
 from app.models.user import User
 from app.db.database import get_db
@@ -12,9 +13,11 @@ from sqlalchemy.orm import Session
 from app.services.checklist_sqlite_service import get_recent_entries
 from app.models.checklist_entry import ChecklistEntrySQL
 from sqlalchemy import func
+import io
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+export_service = ExportService()
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def get_dashboard(
@@ -93,41 +96,154 @@ async def get_dashboard(
 
 @router.get("/summary")
 async def get_summary(
+    db: Session = Depends(get_db),
     area: Optional[str] = None,
     desde: Optional[datetime] = None,
     hasta: Optional[datetime] = None
 ):
     """
-    Obtener resumen de cumplimiento (placeholder sin autenticación)
+    Obtener resumen de cumplimiento con datos reales
     """
-    # Devolver estructura vacía temporalmente
-    return {}
+    query = db.query(ChecklistEntry)
+    
+    if area:
+        query = query.filter(ChecklistEntry.area == area)
+    if desde:
+        query = query.filter(ChecklistEntry.fecha_hora >= desde)
+    if hasta:
+        query = query.filter(ChecklistEntry.fecha_hora <= hasta)
+    
+    entries = query.all()
+    total = len(entries)
+    cumple_count = sum(1 for e in entries if e.cumple)
+    
+    # Agrupaciones
+    por_area = {}
+    por_turno = {}
+    por_etapa = {}
+    
+    for entry in entries:
+        # Por área
+        if entry.area not in por_area:
+            por_area[entry.area] = {"total": 0, "cumple": 0}
+        por_area[entry.area]["total"] += 1
+        if entry.cumple:
+            por_area[entry.area]["cumple"] += 1
+        
+        # Por turno
+        if entry.turno not in por_turno:
+            por_turno[entry.turno] = {"total": 0, "cumple": 0}
+        por_turno[entry.turno]["total"] += 1
+        if entry.cumple:
+            por_turno[entry.turno]["cumple"] += 1
+        
+        # Por etapa
+        if entry.protocolo_etapa not in por_etapa:
+            por_etapa[entry.protocolo_etapa] = {"total": 0, "cumple": 0}
+        por_etapa[entry.protocolo_etapa]["total"] += 1
+        if entry.cumple:
+            por_etapa[entry.protocolo_etapa]["cumple"] += 1
+    
+    # Calcular porcentajes
+    for area_key in por_area:
+        por_area[area_key]["porcentaje"] = (por_area[area_key]["cumple"] / por_area[area_key]["total"] * 100) if por_area[area_key]["total"] > 0 else 0
+    
+    for turno_key in por_turno:
+        por_turno[turno_key]["porcentaje"] = (por_turno[turno_key]["cumple"] / por_turno[turno_key]["total"] * 100) if por_turno[turno_key]["total"] > 0 else 0
+    
+    for etapa_key in por_etapa:
+        por_etapa[etapa_key]["porcentaje"] = (por_etapa[etapa_key]["cumple"] / por_etapa[etapa_key]["total"] * 100) if por_etapa[etapa_key]["total"] > 0 else 0
+    
+    return {
+        "total_registros": total,
+        "total_cumple": cumple_count,
+        "porcentaje_cumplimiento": (cumple_count / total * 100) if total > 0 else 0,
+        "por_area": por_area,
+        "por_turno": por_turno,
+        "por_etapa": por_etapa
+    }
 
 @router.get("/anomalies")
-async def get_anomalies():
+async def get_anomalies(db: Session = Depends(get_db)):
     """
-    Detectar anomalías en el cumplimiento (placeholder sin autenticación)
+    Detectar anomalías en el cumplimiento (patrones inusuales)
     """
-    return {"anomalies": []}
+    # Obtener datos de los últimos 30 días
+    desde = datetime.now() - timedelta(days=30)
+    entries = db.query(ChecklistEntry).filter(
+        ChecklistEntry.fecha_hora >= desde
+    ).all()
+    
+    anomalies = []
+    
+    # Detectar áreas con cumplimiento < 50%
+    area_stats = {}
+    for entry in entries:
+        if entry.area not in area_stats:
+            area_stats[entry.area] = {"total": 0, "cumple": 0}
+        area_stats[entry.area]["total"] += 1
+        if entry.cumple:
+            area_stats[entry.area]["cumple"] += 1
+    
+    for area, stats in area_stats.items():
+        cumplimiento = (stats["cumple"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        if cumplimiento < 50:
+            anomalies.append({
+                "tipo": "cumplimiento_critico",
+                "area": area,
+                "descripcion": f"Cumplimiento crítico en {area}: {cumplimiento:.1f}%",
+                "severidad": "alta",
+                "valor": cumplimiento
+            })
+        elif cumplimiento < 70:
+            anomalies.append({
+                "tipo": "cumplimiento_bajo",
+                "area": area,
+                "descripcion": f"Cumplimiento bajo en {area}: {cumplimiento:.1f}%",
+                "severidad": "media",
+                "valor": cumplimiento
+            })
+    
+    return {"anomalies": anomalies}
 
 @router.get("/critical-items")
 async def get_critical_items(
+    db: Session = Depends(get_db),
     area: Optional[str] = None,
     desde: Optional[datetime] = None,
     hasta: Optional[datetime] = None
 ):
     """
-    Obtener items críticos (placeholder sin autenticación)
+    Obtener items críticos (registros que no cumplen)
     """
-    return []
+    query = db.query(ChecklistEntry).filter(ChecklistEntry.cumple == False)
+    
+    if area:
+        query = query.filter(ChecklistEntry.area == area)
+    if desde:
+        query = query.filter(ChecklistEntry.fecha_hora >= desde)
+    if hasta:
+        query = query.filter(ChecklistEntry.fecha_hora <= hasta)
+    
+    critical_entries = query.order_by(ChecklistEntry.fecha_hora.desc()).limit(100).all()
+    
+    return [{
+        "id": entry.id,
+        "fecha_hora": entry.fecha_hora.isoformat(),
+        "area": entry.area,
+        "turno": entry.turno,
+        "protocolo_etapa": entry.protocolo_etapa,
+        "observaciones": entry.observaciones
+    } for entry in critical_entries]
 
 @router.get("/turnos-comparison")
 async def get_turnos_comparison(
+    db: Session = Depends(get_db),
     area: Optional[str] = None,
     periodo: Optional[str] = "7d"
 ):
     """
-    Obtener comparación de cumplimiento entre turnos (placeholder)
+    Obtener comparación de cumplimiento entre turnos
     """
     # Calcular fechas según periodo
     hasta = datetime.now()
@@ -140,15 +256,149 @@ async def get_turnos_comparison(
     else:
         desde = hasta - timedelta(days=7)
 
-    return {}
+    query = db.query(ChecklistEntry).filter(
+        ChecklistEntry.fecha_hora >= desde
+    )
+    
+    if area:
+        query = query.filter(ChecklistEntry.area == area)
+    
+    entries = query.all()
+    
+    turnos_stats = {}
+    for entry in entries:
+        if entry.turno not in turnos_stats:
+            turnos_stats[entry.turno] = {"total": 0, "cumple": 0}
+        turnos_stats[entry.turno]["total"] += 1
+        if entry.cumple:
+            turnos_stats[entry.turno]["cumple"] += 1
+    
+    # Calcular porcentajes
+    for turno in turnos_stats:
+        turnos_stats[turno]["porcentaje"] = (
+            turnos_stats[turno]["cumple"] / turnos_stats[turno]["total"] * 100
+        ) if turnos_stats[turno]["total"] > 0 else 0
+    
+    return {
+        "periodo": periodo,
+        "desde": desde.isoformat(),
+        "hasta": hasta.isoformat(),
+        "turnos": turnos_stats
+    }
 
 @router.get("/compliance-trends")
 async def get_compliance_trends(
+    db: Session = Depends(get_db),
     area: Optional[str] = None,
     periodo: Optional[str] = "30d",
     agrupacion: Optional[str] = "day"
 ):
     """
-    Obtener tendencias de cumplimiento en el tiempo (placeholder)
+    Obtener tendencias de cumplimiento en el tiempo
     """
-    return []
+    # Calcular rango de fechas
+    hasta = datetime.now()
+    if periodo == "7d":
+        desde = hasta - timedelta(days=7)
+    elif periodo == "30d":
+        desde = hasta - timedelta(days=30)
+    elif periodo == "90d":
+        desde = hasta - timedelta(days=90)
+    else:
+        desde = hasta - timedelta(days=30)
+    
+    query = db.query(ChecklistEntry).filter(
+        ChecklistEntry.fecha_hora >= desde
+    )
+    
+    if area:
+        query = query.filter(ChecklistEntry.area == area)
+    
+    entries = query.order_by(ChecklistEntry.fecha_hora).all()
+    
+    # Agrupar por día
+    tendencias = {}
+    for entry in entries:
+        fecha_key = entry.fecha_hora.strftime("%Y-%m-%d")
+        if fecha_key not in tendencias:
+            tendencias[fecha_key] = {"total": 0, "cumple": 0}
+        tendencias[fecha_key]["total"] += 1
+        if entry.cumple:
+            tendencias[fecha_key]["cumple"] += 1
+    
+    # Convertir a lista ordenada con porcentajes
+    resultado = []
+    for fecha, stats in sorted(tendencias.items()):
+        resultado.append({
+            "fecha": fecha,
+            "total": stats["total"],
+            "cumple": stats["cumple"],
+            "porcentaje": (stats["cumple"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        })
+    
+    return resultado
+
+    @router.get("/export/pdf")
+    async def export_report_to_pdf(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_active_user),
+        area: Optional[str] = None,
+        desde: Optional[datetime] = None,
+        hasta: Optional[datetime] = None
+    ):
+        """
+        Exportar reporte de cumplimiento a PDF
+        """
+        # Obtener datos del resumen
+        query = db.query(ChecklistEntrySQL)
+    
+        if area:
+            query = query.filter(ChecklistEntrySQL.area == area)
+        if desde:
+            query = query.filter(ChecklistEntrySQL.fecha_hora >= desde)
+        if hasta:
+            query = query.filter(ChecklistEntrySQL.fecha_hora <= hasta)
+    
+        entries = query.all()
+        total = len(entries)
+        cumple_count = sum(1 for e in entries if e.cumple)
+    
+        # Calcular por área
+        por_area = {}
+        for entry in entries:
+            if entry.area not in por_area:
+                por_area[entry.area] = {"total": 0, "cumple": 0}
+            por_area[entry.area]["total"] += 1
+            if entry.cumple:
+                por_area[entry.area]["cumple"] += 1
+    
+        for area_key in por_area:
+            por_area[area_key]["porcentaje"] = (
+                por_area[area_key]["cumple"] / por_area[area_key]["total"] * 100
+            ) if por_area[area_key]["total"] > 0 else 0
+    
+        summary = {
+            "total_registros": total,
+            "total_cumple": cumple_count,
+            "porcentaje_cumplimiento": (cumple_count / total * 100) if total > 0 else 0,
+            "por_area": por_area
+        }
+    
+        # Generar PDF
+        try:
+            pdf_bytes = export_service.export_report_to_pdf(summary)
+        
+            # Crear nombre de archivo con timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"medcheck_reporte_{timestamp}.pdf"
+        
+            return StreamingResponse(
+                io.BytesIO(pdf_bytes),
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error al generar PDF: {str(e)}"
+            )

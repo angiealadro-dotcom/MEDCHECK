@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from app.db.database import create_tables
 from app.routers import auth_simple, checklist, reports
+from app.routers import alerts_sqlite as alerts
 from app.config import settings
 
 # Crear la aplicación
@@ -48,6 +49,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_simple.router)
 app.include_router(checklist.router, prefix="/checklist", tags=["checklist"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])
+app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 
 # Ruta principal
 @app.get("/", response_class=HTMLResponse)

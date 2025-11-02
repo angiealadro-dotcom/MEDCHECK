@@ -5,8 +5,10 @@ from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from app.services.alert_service import AlertService
-from app.routers.auth import get_current_user, User
-from app.db.snowflake import get_snowflake_connection
+from app.auth.users import get_current_active_user
+from app.models.user import User
+from app.db.database import get_db
+from sqlalchemy.orm import Session
 
 # Import the AlertConfig model from models.alerts
 from app.models.alerts import AlertConfig
