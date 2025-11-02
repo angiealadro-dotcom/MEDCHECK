@@ -5,12 +5,12 @@ from typing import List
 from datetime import datetime
 import io
 from sqlalchemy.orm import Session
-from app.models.checklist_entry import ChecklistEntry
+from app.models.checklist_entry import ChecklistEntrySQL
 
 class ExportService:
     """Servicio para exportar datos a diferentes formatos"""
     
-    def export_to_excel(self, entries: List[ChecklistEntry]) -> bytes:
+    def export_to_excel(self, entries: List[ChecklistEntrySQL]) -> bytes:
         """
         Exportar entradas a Excel usando openpyxl
         """
@@ -49,7 +49,7 @@ class ExportService:
                     entry.protocolo_etapa,
                     "Sí" if entry.cumple else "No",
                     entry.observaciones or "",
-                    str(entry.user_id)
+                    entry.usuario or ""
                 ])
             
             # Ajustar anchos de columna
@@ -74,7 +74,7 @@ class ExportService:
         except ImportError:
             raise Exception("openpyxl no está instalado. Instala con: pip install openpyxl")
     
-    def export_to_csv(self, entries: List[ChecklistEntry]) -> str:
+    def export_to_csv(self, entries: List[ChecklistEntrySQL]) -> str:
         """
         Exportar entradas a CSV
         """
@@ -100,7 +100,7 @@ class ExportService:
                 entry.protocolo_etapa,
                 "Sí" if entry.cumple else "No",
                 entry.observaciones or "",
-                str(entry.user_id)
+                entry.usuario or ""
             ])
         
         return output.getvalue()

@@ -4,7 +4,7 @@ Servicio de alertas simplificado para SQLite
 from typing import List, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from app.models.checklist_entry import ChecklistEntry
+from app.models.checklist_entry import ChecklistEntrySQL
 from app.models.user import User
 
 class AlertService:
@@ -17,12 +17,12 @@ class AlertService:
         # Obtener registros de las últimas 24 horas
         desde = datetime.now() - timedelta(hours=24)
         
-        query = db.query(ChecklistEntry).filter(
-            ChecklistEntry.fecha_hora >= desde
+        query = db.query(ChecklistEntrySQL).filter(
+            ChecklistEntrySQL.fecha_hora >= desde
         )
         
         if area:
-            query = query.filter(ChecklistEntry.area == area)
+            query = query.filter(ChecklistEntrySQL.area == area)
         
         entries = query.all()
         
