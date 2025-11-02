@@ -25,40 +25,49 @@ class VoiceService:
         """
         Genera audio narrando el resumen del reporte
         """
-        if not self.settings.elevenlabs_api_key:
+        # Leer API key desde env en tiempo de ejecución
+        api_key = os.getenv("ELEVENLABS_API_KEY") or self.settings.elevenlabs_api_key
+        if not api_key:
+            print("[VOICE] No ELEVENLABS_API_KEY configured")
             return None
         
         # Construir texto narrativo del reporte
         texto = self._build_report_narrative(summary)
         
-        # Llamar a ElevenLabs API
+        # Llamar a ElevenLabs API - usar endpoint estándar sin output_format explícito
         url = f"{self.base_url}/text-to-speech/{self.settings.elevenlabs_voice_id}"
         headers = {
             "Accept": "audio/mpeg",
             "Content-Type": "application/json",
-            "xi-api-key": self.settings.elevenlabs_api_key
+            "xi-api-key": api_key
         }
         
+        # Simplificar payload - quitar parámetros opcionales que puedan causar problemas de permisos
         data = {
             "text": texto,
             "model_id": "eleven_multilingual_v2",
             "voice_settings": {
                 "stability": 0.5,
-                "similarity_boost": 0.75,
-                "style": 0.0,
-                "use_speaker_boost": True
+                "similarity_boost": 0.75
             }
         }
         
         try:
-            response = requests.post(url, json=data, headers=headers)
+            print(f"[VOICE] Calling ElevenLabs API with {len(texto)} chars")
+            response = requests.post(url, json=data, headers=headers, timeout=30)
+            print(f"[VOICE] Response status: {response.status_code}")
+            
             if response.status_code == 200:
+                print(f"[VOICE] Success - audio size: {len(response.content)} bytes")
                 return response.content
             else:
-                print(f"Error ElevenLabs: {response.status_code} - {response.text}")
+                print(f"[VOICE] Error ElevenLabs: {response.status_code}")
+                print(f"[VOICE] Response body: {response.text}")
                 return None
         except Exception as e:
-            print(f"Error generando voz: {e}")
+            print(f"[VOICE] Exception generating voice: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def _build_report_narrative(self, summary: dict) -> str:
