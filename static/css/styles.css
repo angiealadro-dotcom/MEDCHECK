@@ -27,6 +27,9 @@ body.theme {
 .navbar-branding .navbar-brand .brand-text {
     color: var(--brand-navy);
     font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 0.2px;
+    line-height: 1;
 }
 .navbar-branding .navbar-nav .nav-link { color: var(--brand-navy); font-weight: 600; }
 .navbar-branding .navbar-nav .nav-link:hover { color: var(--brand-lavender); }
