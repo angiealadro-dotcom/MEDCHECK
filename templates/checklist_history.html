@@ -22,6 +22,14 @@
                         </select>
                     </div>
                     <div class="col-md-3">
+                        <label class="form-label">Desde</label>
+                        <input type="datetime-local" class="form-control" id="desdeFilter">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Hasta</label>
+                        <input type="datetime-local" class="form-control" id="hastaFilter">
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label">Turno</label>
                         <select class="form-select" name="turno" id="turnoFilter">
                             <option value="">Todos los turnos</option>
@@ -126,6 +134,7 @@
                     <tr data-area="{{ entry.area }}" 
                         data-turno="{{ entry.turno }}" 
                         data-etapa="{{ entry.protocolo_etapa }}"
+                        data-date="{{ entry.fecha_hora.isoformat() if entry.fecha_hora else '' }}"
                         data-cumple="{{ 'si' if entry.cumple else 'no' }}"
                         data-search="{{ (entry.item + ' ' + (entry.observaciones or ''))|lower }}">
                         <td>{{ entry.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
@@ -179,6 +188,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const etapaFilter = document.getElementById('etapaFilter');
     const cumpleFilter = document.getElementById('cumpleFilter');
     const searchBox = document.getElementById('searchBox');
+    const desdeFilter = document.getElementById('desdeFilter');
+    const hastaFilter = document.getElementById('hastaFilter');
     
     const totalCount = document.getElementById('totalCount');
     const cumplidosCount = document.getElementById('cumplidosCount');
@@ -190,7 +201,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const turnoValue = turnoFilter.value.toLowerCase();
         const etapaValue = etapaFilter.value.toLowerCase();
         const cumpleValue = cumpleFilter.value;
-        const searchValue = searchBox.value.toLowerCase();
+    const searchValue = searchBox.value.toLowerCase();
+    const desdeValue = desdeFilter.value ? new Date(desdeFilter.value) : null;
+    const hastaValue = hastaFilter.value ? new Date(hastaFilter.value) : null;
         
         let visibleCount = 0;
         let visibleCumplidos = 0;
@@ -201,15 +214,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const turno = row.dataset.turno.toLowerCase();
             const etapa = row.dataset.etapa.toLowerCase();
             const cumple = row.dataset.cumple;
+            const dateStr = row.dataset.date;
+            const rowDate = dateStr ? new Date(dateStr) : null;
             const searchText = row.dataset.search;
             
             const matchesArea = !areaValue || area === areaValue;
             const matchesTurno = !turnoValue || turno === turnoValue;
             const matchesEtapa = !etapaValue || etapa === etapaValue;
             const matchesCumple = !cumpleValue || cumple === cumpleValue;
+            const matchesDesde = !desdeValue || (rowDate && rowDate >= desdeValue);
+            const matchesHasta = !hastaValue || (rowDate && rowDate <= hastaValue);
             const matchesSearch = !searchValue || searchText.includes(searchValue);
             
-            const visible = matchesArea && matchesTurno && matchesEtapa && matchesCumple && matchesSearch;
+            const visible = matchesArea && matchesTurno && matchesEtapa && matchesCumple && matchesDesde && matchesHasta && matchesSearch;
             
             row.style.display = visible ? '' : 'none';
             
@@ -245,6 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
         etapaFilter.value = '';
         cumpleFilter.value = '';
         searchBox.value = '';
+        desdeFilter.value = '';
+        hastaFilter.value = '';
         applyFilters();
     });
     
@@ -255,7 +274,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function buildQueryParams() {
         const params = new URLSearchParams();
         if (areaFilter.value) params.set('area', areaFilter.value);
-        // Opcionalmente, podríamos añadir desde/hasta si existieran inputs de fecha
+        if (desdeFilter.value) params.set('desde', new Date(desdeFilter.value).toISOString());
+        if (hastaFilter.value) params.set('hasta', new Date(hastaFilter.value).toISOString());
         return params.toString();
     }
 
