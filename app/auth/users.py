@@ -4,6 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from passlib.hash import bcrypt as bcrypt_hash
 from passlib.hash import pbkdf2_sha256
+import bcrypt
 from fastapi import Depends, HTTPException, status, Request, Cookie
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -22,19 +23,29 @@ pwd_context = CryptContext(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # Si el hash es PBKDF2-SHA256 no truncamos; si es bcrypt, truncamos a 72 bytes
-    is_pbkdf2 = isinstance(hashed_password, str) and hashed_password.startswith("$pbkdf2-sha256$")
-    if isinstance(plain_password, str) and not is_pbkdf2:
-        b = plain_password.encode('utf-8')
-        b = b[:72]
-        try:
-            plain_password = b.decode('utf-8')
-        except UnicodeDecodeError:
-            # Si cortamos un carácter multibyte, ignoramos los bytes finales
-            plain_password = b.decode('utf-8', errors='ignore')
+    # Manejar explícitamente PBKDF2 y bcrypt para evitar problemas de backend en producción
     try:
+        # PBKDF2-SHA256: verificar directamente con passlib handler
+        if isinstance(hashed_password, str) and hashed_password.startswith("$pbkdf2-sha256$"):
+            result = pbkdf2_sha256.verify(plain_password, hashed_password)
+            print(f"[VERIFY] scheme=pbkdf2_sha256, plain_len={len(plain_password)}, result={result}")
+            return result
+
+        # bcrypt: usar la librería bcrypt directamente y truncar a 72 bytes en bytes
+        if isinstance(hashed_password, str) and (hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$") or hashed_password.startswith("$2y$")):
+            b = plain_password.encode('utf-8')
+            b72 = b[:72]
+            try:
+                ok = bcrypt.checkpw(b72, hashed_password.encode('utf-8'))
+                print(f"[VERIFY] scheme=bcrypt, plain_len={len(plain_password)}, used_len={len(b72)}, result={ok}")
+                return ok
+            except Exception as e:
+                print(f"[VERIFY][bcrypt error] {e}")
+                return False
+
+        # Fallback general a passlib (otros esquemas)
         result = pwd_context.verify(plain_password, hashed_password)
-        print(f"[VERIFY] is_pbkdf2={is_pbkdf2}, plain_len={len(plain_password)}, result={result}")
+        print(f"[VERIFY] scheme=passlib_fallback, plain_len={len(plain_password)}, result={result}")
         return result
     except Exception as e:
         print(f"[VERIFY][ERROR] {e}")
