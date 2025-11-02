@@ -1,0 +1,30 @@
+{
+  "name": "MedCheck - Sistema de Verificación Médica",
+  "short_name": "MedCheck",
+  "description": "Sistema inteligente de verificación médica para garantizar la seguridad del paciente",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0F1A56",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/img/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"],
+  "lang": "es-ES"
+}
