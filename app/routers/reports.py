@@ -389,23 +389,23 @@ async def export_report_to_pdf(
         }
     
         # Generar PDF
-    try:
-        pdf_bytes = export_service.export_report_to_pdf(summary)
-    
-        # Crear nombre de archivo con timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"medcheck_reporte_{timestamp}.pdf"
-    
-        return StreamingResponse(
-            io.BytesIO(pdf_bytes),
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename={filename}"}
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error al generar PDF: {str(e)}"
-        )
+        try:
+            pdf_bytes = export_service.export_report_to_pdf(summary)
+        
+            # Crear nombre de archivo con timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"medcheck_reporte_{timestamp}.pdf"
+        
+            return StreamingResponse(
+                io.BytesIO(pdf_bytes),
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error al generar PDF: {str(e)}"
+            )
 
 @router.get("/recommendations")
 async def get_recommendations(
