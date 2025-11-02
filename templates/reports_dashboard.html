@@ -261,12 +261,10 @@
     </div>
 </div>
 
-<!-- Botón flotante de voz -->
-{% if voice_enabled %}
+<!-- Botón flotante de voz (si no hay clave se mostrará igualmente con guía) -->
 <button id="voiceBtn" class="voice-btn" title="Escuchar resumen del reporte">
     <i class="fas fa-volume-up"></i>
 </button>
-{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -450,8 +448,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Activar botón de voz
     const voiceBtn = document.getElementById('voiceBtn');
+    let voiceAvailable = false;
+
+    // Verificar disponibilidad de clave en el servidor
+    fetch('/reports/voice-status').then(r => r.json()).then(j => {
+        voiceAvailable = !!(j && j.enabled);
+        if (!voiceAvailable) {
+            voiceBtn.title = 'Configura ELEVENLABS_API_KEY en Render > Environment para habilitar voz';
+        }
+    }).catch(() => {
+        // Si el endpoint no existe, dejamos el comportamiento por defecto
+    });
+
     if (voiceBtn) {
         voiceBtn.addEventListener('click', async function() {
+            if (!voiceAvailable) {
+                alert('Para habilitar la voz, configura ELEVENLABS_API_KEY en Render > Environment y redepliega.');
+                return;
+            }
             const filterForm = document.getElementById('filterForm');
             if (!filterForm) return;
             
@@ -491,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 voiceBtn.classList.remove('playing');
                 voiceBtn.disabled = false;
                 
-                alert('⚠️ Servicio de voz no disponible.\n\nAsegúrate de que ELEVENLABS_API_KEY esté configurado en el archivo .env');
+                alert('⚠️ Servicio de voz no disponible.\n\nAsegúrate de que ELEVENLABS_API_KEY esté configurado en Render > Environment y que tu clave tenga el permiso "text_to_speech".');
             }
         });
     }
