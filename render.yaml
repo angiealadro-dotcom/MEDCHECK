@@ -3,5 +3,17 @@ services:
     name: medcheck-app
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
+    # Con SQLite, evitar condiciones de carrera en create_tables: usar 1 worker
+    startCommand: "gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
     autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_NAME
+        value: MedCheck
+      - key: DATABASE_URL
+        value: sqlite:////var/data/medcheck.db
+    disk:
+      name: medcheck-data
+      mountPath: /var/data
+      sizeGB: 1
