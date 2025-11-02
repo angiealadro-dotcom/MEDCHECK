@@ -13,6 +13,12 @@ services:
         value: MedCheck
       - key: DATABASE_URL
         value: sqlite:////var/data/medcheck.db
+      # Configura esta variable en Render (recomendado como Secret) para habilitar el botón de voz
+      - key: ELEVENLABS_API_KEY
+        fromSecret: ELEVENLABS_API_KEY
+      # Opcional: personaliza la voz
+      - key: ELEVENLABS_VOICE_ID
+        value: 21m00Tcm4TlvDq8ikWAM
     disk:
       name: medcheck-data
       mountPath: /var/data
