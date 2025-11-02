@@ -78,7 +78,7 @@
         <!-- Resumen Rápido -->
         <div class="row mb-3">
             <div class="col-md-3">
-                <div class="card bg-light">
+                <div class="card text-white" style="background: linear-gradient(135deg, var(--brand-navy), #1b2a85);">
                     <div class="card-body text-center">
                         <h6>Total Registros</h6>
                         <h4 id="totalCount">{{ entries|length }}</h4>
@@ -102,7 +102,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-info text-white">
+                <div class="card text-white" style="background: linear-gradient(135deg, var(--brand-lavender), #c5a8f0);">
                     <div class="card-body text-center">
                         <h6>% Cumplimiento</h6>
                         <h4 id="porcentajeCount">
@@ -139,7 +139,7 @@
                         data-search="{{ (entry.item + ' ' + (entry.observaciones or ''))|lower }}">
                         <td>{{ entry.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>{{ entry.area }}</td>
-                        <td><span class="badge bg-secondary">{{ entry.turno }}</span></td>
+                        <td><span class="badge" style="background: var(--brand-navy);">{{ entry.turno }}</span></td>
                         <td>{{ entry.protocolo_etapa }}</td>
                         <td>{{ entry.item }}</td>
                         <td>

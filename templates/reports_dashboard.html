@@ -43,7 +43,7 @@
         <!-- Resumen -->
         <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card bg-primary text-white">
+                <div class="card text-white" style="background: linear-gradient(135deg, var(--brand-navy), #1b2a85);">
                     <div class="card-body">
                         <h5 class="card-title">Total Items</h5>
                         <h2>{{ summary.total_items if summary else 0 }}</h2>
@@ -70,7 +70,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-info text-white">
+                <div class="card text-white" style="background: linear-gradient(135deg, var(--brand-lavender), #c5a8f0);">
                     <div class="card-body">
                         <h5 class="card-title">Periodo</h5>
                         <h2>{{ periodo }}</h2>
@@ -163,7 +163,7 @@
                                     <tr>
                                         <td>{{ entry.fecha_hora.strftime('%Y-%m-%d %H:%M') if entry.fecha_hora else 'N/A' }}</td>
                                         <td>{{ entry.area }}</td>
-                                        <td><span class="badge bg-secondary">{{ entry.turno }}</span></td>
+                                        <td><span class="badge" style="background: var(--brand-navy);">{{ entry.turno }}</span></td>
                                         <td>{{ entry.protocolo_etapa }}</td>
                                         <td>{{ entry.item }}</td>
                                         <td>
@@ -215,14 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 label: '% Cumplimiento por Etapa',
                 data: cumplimientoData,
                 backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 205, 86, 0.6)'
+                    'rgba(15, 26, 86, 0.7)',
+                    'rgba(168, 139, 222, 0.7)',
+                    'rgba(189, 248, 255, 0.7)'
                 ],
                 borderColor: [
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 205, 86)'
+                    'rgb(15, 26, 86)',
+                    'rgb(168, 139, 222)',
+                    'rgb(189, 248, 255)'
                 ],
                 borderWidth: 2
             }]
@@ -259,8 +259,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: [cumplidos, noCumplidos],
                 backgroundColor: [
-                    'rgb(75, 192, 192)',
-                    'rgb(255, 99, 132)'
+                    'rgba(168, 139, 222, 0.85)',
+                    'rgba(255, 99, 132, 0.85)'
                 ],
                 borderWidth: 2
             }]

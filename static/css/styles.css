@@ -1,3 +1,44 @@
+/* Branding theme */
+:root {
+    --brand-navy: #0F1A56;
+    --brand-lavender: #A88BDE;
+    --brand-cyan: #BDF8FF;
+    --gray-100: #F2F2F4;
+    --text-900: #0F1226;
+}
+
+/* Global themed body (applied via <body class="theme">) */
+body.theme {
+    font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-900);
+    background:
+      radial-gradient(80vmax 80vmax at -10% -10%, #efeaff 0%, transparent 60%),
+      radial-gradient(60vmax 60vmax at 110% 10%, #d8faff 0%, transparent 55%),
+      linear-gradient(180deg, #ffffff 0%, #fbfbfe 100%);
+    min-height: 100vh;
+}
+
+/* Navbar branding */
+.navbar-branding {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: saturate(120%) blur(6px);
+    border-bottom: 1px solid var(--gray-100);
+}
+.navbar-branding .navbar-brand .brand-text {
+    color: var(--brand-navy);
+    font-weight: 700;
+}
+.navbar-branding .navbar-nav .nav-link { color: var(--brand-navy); font-weight: 600; }
+.navbar-branding .navbar-nav .nav-link:hover { color: var(--brand-lavender); }
+/* Toggler icon for custom navbar (Bootstrap expects .navbar-light/.navbar-dark) */
+.navbar-branding .navbar-toggler {
+    border-color: rgba(15,26,86,0.2);
+}
+.navbar-branding .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(15,26,86,0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+.brand-logo { filter: drop-shadow(0 2px 2px rgba(15,26,86,0.15)); }
+
 /* Estilos generales */
 body {
     background-color: #f8f9fa;
@@ -41,13 +82,21 @@ body {
 
 /* Estilos para los botones */
 .btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background: linear-gradient(135deg, var(--brand-navy), #1b2a85);
+    border-color: transparent;
 }
 
 .btn-primary:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+    background: linear-gradient(135deg, #1b2a85, var(--brand-navy));
+}
+
+.btn-outline-secondary {
+    border-color: var(--brand-navy);
+    color: var(--brand-navy);
+}
+.btn-outline-secondary:hover {
+    background: var(--brand-navy);
+    color: #fff;
 }
 
 /* Estilos para las alertas */

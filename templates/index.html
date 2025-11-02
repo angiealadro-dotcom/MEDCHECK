@@ -4,10 +4,6 @@
 
 {% block head_extras %}
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
         .hero {
             background: rgba(255, 255, 255, 0.95);
             padding: 60px;
@@ -55,14 +51,14 @@
             left: 0;
             width: 100%;
             height: 5px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, var(--brand-lavender), var(--brand-cyan));
         }
         .card-icon {
             font-size: 56px;
             margin-bottom: 20px;
         }
         .card h3 {
-            color: #333;
+            color: var(--brand-navy);
             font-size: 24px;
             margin-bottom: 15px;
             font-weight: 600;
@@ -75,7 +71,7 @@
         .btn {
             display: inline-block;
             padding: 14px 32px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--brand-navy), #1b2a85);
             color: white;
             text-decoration: none;
             border-radius: 10px;
@@ -94,7 +90,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
         .info-section h3 {
-            color: #667eea;
+            color: var(--brand-navy);
             font-size: 32px;
             margin-bottom: 25px;
             font-weight: 700;
@@ -115,10 +111,10 @@
             background: #f8f9ff;
             padding: 20px;
             border-radius: 10px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--brand-lavender);
         }
         .features-list strong {
-            color: #667eea;
+            color: var(--brand-navy);
             display: block;
             margin-bottom: 8px;
             font-size: 18px;
@@ -147,19 +143,19 @@
                 <div class="card-icon"></div>
                 <h3>Nueva Lista de Cotejo</h3>
                 <p>Crea y gestiona verificaciones completas del proceso de administración de medicamentos con nuestro sistema intuitivo.</p>
-                <a href="/checklist/new" class="btn">Comenzar Ahora</a>
+                <a href="/checklist/new" class="btn btn-primary">Comenzar Ahora</a>
             </div>
             <div class="card">
                 <div class="card-icon"></div>
                 <h3>Historial Completo</h3>
                 <p>Accede al registro detallado de todas las verificaciones realizadas y monitorea el cumplimiento en tiempo real.</p>
-                <a href="/checklist/history" class="btn">Ver Historial</a>
+                <a href="/checklist/history" class="btn btn-primary">Ver Historial</a>
             </div>
             <div class="card">
                 <div class="card-icon"></div>
                 <h3>Reportes Avanzados</h3>
                 <p>Genera análisis estadísticos completos y reportes visuales para optimizar los procesos médicos.</p>
-                <a href="/reports/dashboard" class="btn">Ver Reportes</a>
+                <a href="/reports/dashboard" class="btn btn-primary">Ver Reportes</a>
             </div>
         </div>
         <div class="info-section">
