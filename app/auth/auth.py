@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from passlib.hash import pbkdf2_sha256
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -13,14 +14,40 @@ SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt", "pbkdf2_sha256"],
+    default="bcrypt",
+    deprecated="auto",
+    bcrypt__truncate_error=False,
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def verify_password(plain_password, hashed_password):
+    is_pbkdf2 = isinstance(hashed_password, str) and hashed_password.startswith("$pbkdf2-sha256$")
+    if isinstance(plain_password, str) and not is_pbkdf2:
+        b = plain_password.encode('utf-8')[:72]
+        try:
+            plain_password = b.decode('utf-8')
+        except UnicodeDecodeError:
+            plain_password = b.decode('utf-8', errors='ignore')
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    if isinstance(password, str):
+        b = password.encode('utf-8')
+        orig_len = len(b)
+        b = b[:72]
+        try:
+            password = b.decode('utf-8')
+        except UnicodeDecodeError:
+            password = b.decode('utf-8', errors='ignore')
+    # Si la contraseña original excedía 72 bytes, usar PBKDF2-SHA256 para evitar límite bcrypt
+    try:
+        if orig_len > 72:
+            return pbkdf2_sha256.hash(password)
+        return pwd_context.hash(password)
+    except Exception:
+        return pbkdf2_sha256.hash(password)
 
 def get_user(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()

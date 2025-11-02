@@ -2,9 +2,65 @@
 
 {% block title %}Dashboard de Reportes{% endblock %}
 
+{% block head_extras %}
+<style>
+.recommendations-panel {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+.recommendation-card {
+    border-left: 4px solid;
+    margin-bottom: 1rem;
+}
+.recommendation-card.critico {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+.recommendation-card.advertencia {
+    border-left-color: #ffc107;
+    background: #fffef5;
+}
+.recommendation-card.exito {
+    border-left-color: #28a745;
+    background: #f5fff7;
+}
+.recommendation-card.info {
+    border-left-color: var(--brand-lavender);
+    background: #f9f7ff;
+}
+.voice-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-navy), var(--brand-lavender));
+    border: none;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.2s;
+}
+.voice-btn:hover {
+    transform: scale(1.1);
+}
+.voice-btn.playing {
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
-    <div class="col-md-12">
+    <div class="col-md-9">
         <h2>Dashboard de Reportes</h2>
         
         <!-- Filtros -->
@@ -188,8 +244,29 @@
             <strong>No hay datos disponibles</strong> para el periodo seleccionado.
         </div>
         {% endif %}
+    </div><!-- fin col-md-9 -->
+    
+    <!-- Panel de Recomendaciones -->
+    <div class="col-md-3">
+        <div class="recommendations-panel">
+            <h5 class="mb-3"><i class="fas fa-lightbulb"></i> Recomendaciones</h5>
+            <div id="recommendationsContainer">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Botón flotante de voz -->
+{% if voice_enabled %}
+<button id="voiceBtn" class="voice-btn" title="Escuchar resumen del reporte">
+    <i class="fas fa-volume-up"></i>
+</button>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -315,6 +392,112 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = `/reports/export/pdf?${params.toString()}`;
         });
     }
+
+    // ===== CARGAR RECOMENDACIONES Y ACTIVAR VOZ =====
+    async function loadRecommendations() {
+        const filterForm = document.getElementById('filterForm');
+        if (!filterForm) return;
+        
+        const formData = new FormData(filterForm);
+        const periodo = formData.get('periodo') || '7d';
+        const area = formData.get('area') || '';
+        
+        const container = document.getElementById('recommendationsContainer');
+        
+        try {
+            const res = await fetch(`/reports/recommendations?periodo=${periodo}&area=${area}`);
+            if (!res.ok) throw new Error('Error al cargar recomendaciones');
+            
+            const data = await res.json();
+            renderRecommendations(data.recomendaciones || []);
+        } catch (error) {
+            console.error('Error loading recommendations:', error);
+            container.innerHTML = `
+                <div class="alert alert-warning p-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <small>No se pudieron cargar las recomendaciones</small>
+                </div>
+            `;
+        }
+    }
+
+    function renderRecommendations(recommendations) {
+        const container = document.getElementById('recommendationsContainer');
+        
+        if (recommendations.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-success p-3">
+                    <i class="fas fa-check-circle mb-2"></i>
+                    <p class="mb-0"><strong>¡Excelente trabajo!</strong></p>
+                    <small>No hay recomendaciones críticas en este momento.</small>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = recommendations.map(rec => `
+            <div class="card recommendation-card ${rec.tipo} p-3 mb-2">
+                <div class="d-flex align-items-start">
+                    <i class="fas ${rec.icono} me-2 mt-1" style="font-size: 1.2rem;"></i>
+                    <div class="flex-grow-1">
+                        <strong class="d-block mb-1">${rec.titulo}</strong>
+                        <small class="text-muted">${rec.descripcion}</small>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Activar botón de voz
+    const voiceBtn = document.getElementById('voiceBtn');
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', async function() {
+            const filterForm = document.getElementById('filterForm');
+            if (!filterForm) return;
+            
+            const formData = new FormData(filterForm);
+            const periodo = formData.get('periodo') || '7d';
+            const area = formData.get('area') || '';
+            
+            const icon = voiceBtn.querySelector('i');
+            const originalClass = icon.className;
+            
+            try {
+                icon.className = 'fas fa-spinner fa-spin';
+                voiceBtn.disabled = true;
+                
+                const audio = new Audio(`/reports/voice-summary?periodo=${periodo}&area=${area}`);
+                
+                audio.onloadstart = () => {
+                    icon.className = 'fas fa-volume-up';
+                    voiceBtn.classList.add('playing');
+                };
+                
+                audio.onended = () => {
+                    icon.className = originalClass;
+                    voiceBtn.classList.remove('playing');
+                    voiceBtn.disabled = false;
+                };
+                
+                audio.onerror = () => {
+                    throw new Error('Error al reproducir audio');
+                };
+                
+                await audio.play();
+                
+            } catch (error) {
+                console.error('Voice error:', error);
+                icon.className = originalClass;
+                voiceBtn.classList.remove('playing');
+                voiceBtn.disabled = false;
+                
+                alert('⚠️ Servicio de voz no disponible.\n\nAsegúrate de que ELEVENLABS_API_KEY esté configurado en el archivo .env');
+            }
+        });
+    }
+
+    // Cargar recomendaciones al inicio
+    loadRecommendations();
 });
 </script>
 {% endblock %}

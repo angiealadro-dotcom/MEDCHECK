@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from app.services.snowflake_service import SnowflakeService
 from app.services.reporting_service import ReportingService
 from app.services.export_service import ExportService
+from app.services.voice_service import VoiceService
 from app.auth.users import get_current_active_user
 from app.models.user import User
 from app.db.database import get_db
@@ -18,6 +19,7 @@ import io
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 export_service = ExportService()
+voice_service = VoiceService()
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def get_dashboard(
@@ -90,7 +92,9 @@ async def get_dashboard(
             "summary": summary,
             "area_filtrada": area,
             "periodo": periodo,
-            "areas_disponibles": areas_lista
+            "areas_disponibles": areas_lista,
+            # Mostrar/ocultar botón de voz según disponibilidad de API Key
+            "voice_enabled": bool(voice_service.settings.elevenlabs_api_key)
         }
     )
 
@@ -104,14 +108,14 @@ async def get_summary(
     """
     Obtener resumen de cumplimiento con datos reales
     """
-    query = db.query(ChecklistEntry)
+    query = db.query(ChecklistEntrySQL)
     
     if area:
-        query = query.filter(ChecklistEntry.area == area)
+        query = query.filter(ChecklistEntrySQL.area == area)
     if desde:
-        query = query.filter(ChecklistEntry.fecha_hora >= desde)
+        query = query.filter(ChecklistEntrySQL.fecha_hora >= desde)
     if hasta:
-        query = query.filter(ChecklistEntry.fecha_hora <= hasta)
+        query = query.filter(ChecklistEntrySQL.fecha_hora <= hasta)
     
     entries = query.all()
     total = len(entries)
@@ -170,8 +174,8 @@ async def get_anomalies(db: Session = Depends(get_db)):
     """
     # Obtener datos de los últimos 30 días
     desde = datetime.now() - timedelta(days=30)
-    entries = db.query(ChecklistEntry).filter(
-        ChecklistEntry.fecha_hora >= desde
+    entries = db.query(ChecklistEntrySQL).filter(
+        ChecklistEntrySQL.fecha_hora >= desde
     ).all()
     
     anomalies = []
@@ -216,16 +220,16 @@ async def get_critical_items(
     """
     Obtener items críticos (registros que no cumplen)
     """
-    query = db.query(ChecklistEntry).filter(ChecklistEntry.cumple == False)
+    query = db.query(ChecklistEntrySQL).filter(ChecklistEntrySQL.cumple == False)
     
     if area:
-        query = query.filter(ChecklistEntry.area == area)
+        query = query.filter(ChecklistEntrySQL.area == area)
     if desde:
-        query = query.filter(ChecklistEntry.fecha_hora >= desde)
+        query = query.filter(ChecklistEntrySQL.fecha_hora >= desde)
     if hasta:
-        query = query.filter(ChecklistEntry.fecha_hora <= hasta)
+        query = query.filter(ChecklistEntrySQL.fecha_hora <= hasta)
     
-    critical_entries = query.order_by(ChecklistEntry.fecha_hora.desc()).limit(100).all()
+    critical_entries = query.order_by(ChecklistEntrySQL.fecha_hora.desc()).limit(100).all()
     
     return [{
         "id": entry.id,
@@ -256,12 +260,12 @@ async def get_turnos_comparison(
     else:
         desde = hasta - timedelta(days=7)
 
-    query = db.query(ChecklistEntry).filter(
-        ChecklistEntry.fecha_hora >= desde
+    query = db.query(ChecklistEntrySQL).filter(
+        ChecklistEntrySQL.fecha_hora >= desde
     )
     
     if area:
-        query = query.filter(ChecklistEntry.area == area)
+        query = query.filter(ChecklistEntrySQL.area == area)
     
     entries = query.all()
     
@@ -307,14 +311,14 @@ async def get_compliance_trends(
     else:
         desde = hasta - timedelta(days=30)
     
-    query = db.query(ChecklistEntry).filter(
-        ChecklistEntry.fecha_hora >= desde
+    query = db.query(ChecklistEntrySQL).filter(
+        ChecklistEntrySQL.fecha_hora >= desde
     )
     
     if area:
-        query = query.filter(ChecklistEntry.area == area)
+        query = query.filter(ChecklistEntrySQL.area == area)
     
-    entries = query.order_by(ChecklistEntry.fecha_hora).all()
+    entries = query.order_by(ChecklistEntrySQL.fecha_hora).all()
     
     # Agrupar por día
     tendencias = {}
@@ -399,6 +403,139 @@ async def get_compliance_trends(
             )
         except Exception as e:
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=500,
                 detail=f"Error al generar PDF: {str(e)}"
             )
+
+@router.get("/recommendations")
+async def get_recommendations(
+    db: Session = Depends(get_db),
+    area: Optional[str] = None,
+    periodo: Optional[str] = "7d",
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Obtener recomendaciones inteligentes basadas en el cumplimiento
+    """
+    # Calcular rango de fechas
+    hasta = datetime.now()
+    if periodo == "7d":
+        desde = hasta - timedelta(days=7)
+    elif periodo == "30d":
+        desde = hasta - timedelta(days=30)
+    elif periodo == "90d":
+        desde = hasta - timedelta(days=90)
+    else:
+        desde = hasta - timedelta(days=7)
+    
+    # Consultar datos
+    query = db.query(ChecklistEntrySQL).filter(
+        ChecklistEntrySQL.fecha_hora >= desde
+    )
+    
+    if area:
+        query = query.filter(ChecklistEntrySQL.area == area)
+    
+    entries = query.all()
+    
+    # Calcular resumen
+    total_items = len(entries)
+    items_cumplidos = len([e for e in entries if e.cumple])
+    porcentaje_cumplimiento = round((items_cumplidos / total_items * 100) if total_items > 0 else 0, 1)
+    
+    # Agrupar por etapa
+    cumplimiento_por_etapa = {}
+    for etapa in ["prescripción", "preparación", "administración"]:
+        items_etapa = [e for e in entries if e.protocolo_etapa == etapa]
+        cumplidos_etapa = len([e for e in items_etapa if e.cumple])
+        total_etapa = len(items_etapa)
+        cumplimiento_por_etapa[etapa] = {
+            "total": total_etapa,
+            "cumplidos": cumplidos_etapa,
+            "porcentaje": round((cumplidos_etapa / total_etapa * 100) if total_etapa > 0 else 0, 1)
+        }
+    
+    summary = {
+        "total_items": total_items,
+        "items_cumplidos": items_cumplidos,
+        "porcentaje_cumplimiento": porcentaje_cumplimiento,
+        "cumplimiento_por_etapa": cumplimiento_por_etapa
+    }
+    
+    # Generar recomendaciones
+    recomendaciones = voice_service.get_recommendations(summary)
+    
+    return {"recomendaciones": recomendaciones, "summary": summary}
+
+@router.get("/voice-summary")
+async def get_voice_summary(
+    db: Session = Depends(get_db),
+    area: Optional[str] = None,
+    periodo: Optional[str] = "7d",
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Generar audio del resumen de reportes usando ElevenLabs
+    """
+    # Calcular rango de fechas
+    hasta = datetime.now()
+    if periodo == "7d":
+        desde = hasta - timedelta(days=7)
+    elif periodo == "30d":
+        desde = hasta - timedelta(days=30)
+    elif periodo == "90d":
+        desde = hasta - timedelta(days=90)
+    else:
+        desde = hasta - timedelta(days=7)
+    
+    # Consultar datos
+    query = db.query(ChecklistEntrySQL).filter(
+        ChecklistEntrySQL.fecha_hora >= desde
+    )
+    
+    if area:
+        query = query.filter(ChecklistEntrySQL.area == area)
+    
+    entries = query.all()
+    
+    # Calcular resumen
+    total_items = len(entries)
+    items_cumplidos = len([e for e in entries if e.cumple])
+    porcentaje_cumplimiento = round((items_cumplidos / total_items * 100) if total_items > 0 else 0, 1)
+    
+    # Agrupar por etapa
+    cumplimiento_por_etapa = {}
+    for etapa in ["prescripción", "preparación", "administración"]:
+        items_etapa = [e for e in entries if e.protocolo_etapa == etapa]
+        cumplidos_etapa = len([e for e in items_etapa if e.cumple])
+        total_etapa = len(items_etapa)
+        cumplimiento_por_etapa[etapa] = {
+            "total": total_etapa,
+            "cumplidos": cumplidos_etapa,
+            "porcentaje": round((cumplidos_etapa / total_etapa * 100) if total_etapa > 0 else 0, 1)
+        }
+    
+    summary = {
+        "total_items": total_items,
+        "items_cumplidos": items_cumplidos,
+        "porcentaje_cumplimiento": porcentaje_cumplimiento,
+        "cumplimiento_por_etapa": cumplimiento_por_etapa
+    }
+    
+    # Generar audio
+    audio_bytes = voice_service.generate_report_speech(summary)
+    
+    if audio_bytes:
+        return StreamingResponse(
+            io.BytesIO(audio_bytes),
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": "attachment; filename=reporte_voz.mp3"}
+        )
+    else:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Servicio de voz no disponible. Verifica ELEVENLABS_API_KEY en .env "
+                "y que tu clave tenga el permiso 'text_to_speech' habilitado en ElevenLabs."
+            )
+        )

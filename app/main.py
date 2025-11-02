@@ -81,7 +81,7 @@ async def health_check():
 
 # Endpoint temporal para crear usuario admin (elimina el existente si hay problemas)
 @app.get("/setup-admin")
-async def setup_admin(force: bool = False):
+async def setup_admin(request: Request, force: bool = False, format: str = "json"):
     from app.db.database import SessionLocal
     from app.models.user import User
     from app.auth.users import get_password_hash
@@ -93,21 +93,32 @@ async def setup_admin(force: bool = False):
         existing_admin = db.query(User).filter(User.username == "admin").first()
         
         if existing_admin and not force:
-            return {
+            payload = {
                 "status": "already_exists",
                 "message": "El usuario admin ya existe. Usa ?force=true para recrearlo",
                 "username": existing_admin.username,
                 "email": existing_admin.email,
                 "hint": "Si tienes problemas de login, visita: /setup-admin?force=true"
             }
+            if format == "html":
+                return HTMLResponse(f"""
+                    <html><body>
+                    <h3>Usuario admin ya existe</h3>
+                    <pre>{payload}</pre>
+                    <a href='/login'>Ir a login</a>
+                    </body></html>
+                """)
+            return payload
         
         # Si force=true, eliminar el admin existente
         if existing_admin:
             db.delete(existing_admin)
             db.commit()
         
-        # Crear nuevo usuario admin con el fix de bcrypt
-        hashed_password = get_password_hash("Admin123!")
+        # Crear nuevo usuario admin usando un hash precomputado para evitar
+        # cualquier problema del backend bcrypt en tiempo de ejecución
+        # Contraseña en texto plano: Admin123!
+        hashed_password = "$2b$12$stqmrbQjNtvsb.HqdDcnbeYPo853D3o.N.Lti6dwyQ2YSDn5pKqmS"
         admin = User(
             username="admin",
             email="admin@medcheck.com",
@@ -121,7 +132,7 @@ async def setup_admin(force: bool = False):
         db.commit()
         db.refresh(admin)
         
-        return {
+        payload = {
             "status": "success",
             "message": "Usuario administrador creado exitosamente con el fix de bcrypt",
             "username": "admin",
@@ -130,13 +141,27 @@ async def setup_admin(force: bool = False):
             "login_url": "/login",
             "recreated": existing_admin is not None
         }
+        if format == "html":
+            return HTMLResponse(f"""
+                <html><body>
+                <h3>Administrador creado</h3>
+                <pre>{payload}</pre>
+                <a href='/login?next=/reports/dashboard'>Ir a login</a>
+                </body></html>
+            """)
+        return payload
         
     except Exception as e:
         db.rollback()
-        return {
+        diag = {
             "status": "error",
+            "stage": "db",
+            "type": e.__class__.__name__,
             "message": str(e)
         }
+        if format == "html":
+            return HTMLResponse(f"<pre>{diag}</pre>")
+        return diag
     finally:
         db.close()
 

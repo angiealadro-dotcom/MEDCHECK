@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from passlib.hash import bcrypt as bcrypt_hash
+from passlib.hash import pbkdf2_sha256
 from fastapi import Depends, HTTPException, status, Request, Cookie
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -9,20 +11,61 @@ from app.models.user import User
 from app.db.database import get_db
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configurar bcrypt para no lanzar error con >72 bytes y truncar de forma segura
+pwd_context = CryptContext(
+    # Soportar bcrypt (por defecto) y fallback a PBKDF2-SHA256 sin límite de 72 bytes
+    schemes=["bcrypt", "pbkdf2_sha256"],
+    default="bcrypt",
+    deprecated="auto",
+    bcrypt__truncate_error=False,
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # Bcrypt tiene un límite de 72 bytes - truncar si es necesario
-    if isinstance(plain_password, str):
-        plain_password = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    # Si el hash es PBKDF2-SHA256 no truncamos; si es bcrypt, truncamos a 72 bytes
+    is_pbkdf2 = isinstance(hashed_password, str) and hashed_password.startswith("$pbkdf2-sha256$")
+    if isinstance(plain_password, str) and not is_pbkdf2:
+        b = plain_password.encode('utf-8')
+        b = b[:72]
+        try:
+            plain_password = b.decode('utf-8')
+        except UnicodeDecodeError:
+            # Si cortamos un carácter multibyte, ignoramos los bytes finales
+            plain_password = b.decode('utf-8', errors='ignore')
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    # Bcrypt tiene un límite de 72 bytes - truncar si es necesario
+    # Bcrypt tiene un límite de 72 bytes - truncar de forma segura en bytes
     if isinstance(password, str):
-        password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
-    return pwd_context.hash(password)
+        b = password.encode('utf-8')
+        orig_len = len(b)
+        b72 = b[:72]
+        try:
+            p72 = b72.decode('utf-8')
+        except UnicodeDecodeError:
+            p72 = b72.decode('utf-8', errors='ignore')
+        # Debug suave para diagnosticar problemas puntuales de longitud
+        try:
+            print(f"[PWD_HASH] len_bytes_orig={orig_len} len_bytes_trunc={len(b72)} text_len={len(p72)}")
+        except Exception:
+            pass
+    try:
+        # Si la contraseña supera 72 bytes, usar PBKDF2-SHA256 para evitar límites de bcrypt
+        if orig_len > 72:
+            return pbkdf2_sha256.hash(password)
+        # Caso normal: bcrypt
+        return pwd_context.hash(p72)
+    except Exception as e:
+        # Fallback explícito si alguna configuración de backend lanza error por longitud
+        try:
+            print(f"[PWD_HASH][fallback] Using bcrypt_hash. Cause: {e}")
+        except Exception:
+            pass
+        try:
+            return bcrypt_hash.using(truncate_error=False).hash(p72)
+        except Exception:
+            # Fallback final a PBKDF2-SHA256
+            return pbkdf2_sha256.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -42,11 +85,18 @@ def get_user_by_username(db: Session, username: str):
 
 def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(db, username)
-    if not user:
+    try:
+        print(f"[AUTH] lookup username={username!r} -> {'FOUND' if user else 'NONE'}")
+        if not user:
+            return False
+        ok = verify_password(password, user.hashed_password)
+        print(f"[AUTH] verify -> {ok}")
+        if not ok:
+            return False
+        return user
+    except Exception as e:
+        print(f"[AUTH][ERROR] {e}")
         return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
 
 async def get_current_user(
     request: Request,

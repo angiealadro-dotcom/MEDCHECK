@@ -13,6 +13,11 @@ from app.auth.users import (
     get_user_by_email
 )
 from app.models.user import User
+import logging
+
+# Configurar logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -38,22 +43,26 @@ class UserResponse(BaseModel):
 
 @router.post("/login", response_model=Token)
 async def login(
-    response: Response, 
-    form_data: OAuth2PasswordRequestForm = Depends(), 
+    response: Response,
+    username: str = Form(...),
+    password: str = Form(...),
     db: Session = Depends(get_db)
 ):
     try:
-        print(f"[LOGIN] Intentando autenticar usuario: {form_data.username}")
-        user = authenticate_user(db, form_data.username, form_data.password)
+        logger.info(f"[LOGIN] Intentando autenticar usuario: {username}")
+        logger.info(f"[LOGIN] Password length: {len(password)}")
+
+        # No truncamos aquí: la lógica de verificación maneja bcrypt vs PBKDF2 correctamente
+        user = authenticate_user(db, username, password)
         if not user:
-            print(f"[LOGIN] Fallo de autenticación para: {form_data.username}")
+            logger.warning(f"[LOGIN] Fallo de autenticación para: {username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Usuario o contraseña incorrectos",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        print(f"[LOGIN] Usuario autenticado exitosamente: {user.username}")
+        logger.info(f"[LOGIN] Usuario autenticado exitosamente: {user.username}")
         access_token = create_access_token(data={"sub": user.username})
         
         # Guardar el token en una cookie HTTP-only
@@ -65,16 +74,25 @@ async def login(
             samesite="lax"  # Protección CSRF
         )
         
-        print(f"[LOGIN] Token creado y cookie configurada para: {user.username}")
+        logger.info(f"[LOGIN] Token creado y cookie configurada para: {user.username}")
         return {"access_token": access_token, "token_type": "bearer"}
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[LOGIN ERROR] Error inesperado: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error interno del servidor: {str(e)}"
-        )
+        logger.error(f"[LOGIN ERROR] Error inesperado: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Si la librería bcrypt lanzó un error por longitud, retornar 401 estándar
+        if "longer than 72 bytes" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Usuario o contraseña incorrectos"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error interno del servidor: {str(e)}"
+            )
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
