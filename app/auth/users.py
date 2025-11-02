@@ -32,7 +32,15 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         except UnicodeDecodeError:
             # Si cortamos un carácter multibyte, ignoramos los bytes finales
             plain_password = b.decode('utf-8', errors='ignore')
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        result = pwd_context.verify(plain_password, hashed_password)
+        print(f"[VERIFY] is_pbkdf2={is_pbkdf2}, plain_len={len(plain_password)}, result={result}")
+        return result
+    except Exception as e:
+        print(f"[VERIFY][ERROR] {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 def get_password_hash(password: str) -> str:
     # Bcrypt tiene un límite de 72 bytes - truncar de forma segura en bytes
@@ -89,13 +97,18 @@ def authenticate_user(db: Session, username: str, password: str):
         print(f"[AUTH] lookup username={username!r} -> {'FOUND' if user else 'NONE'}")
         if not user:
             return False
+        # Diagnóstico detallado para producción
+        print(f"[AUTH] user.hashed_password[:20]={user.hashed_password[:20] if user.hashed_password else 'NONE'}")
+        print(f"[AUTH] password length={len(password)}, first_char={password[0] if password else 'EMPTY'}")
         ok = verify_password(password, user.hashed_password)
-        print(f"[AUTH] verify -> {ok}")
+        print(f"[AUTH] verify_password returned: {ok}")
         if not ok:
             return False
         return user
     except Exception as e:
         print(f"[AUTH][ERROR] {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 async def get_current_user(
