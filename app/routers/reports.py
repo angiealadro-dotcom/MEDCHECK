@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
+import os
 from typing import Optional
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -83,6 +84,10 @@ async def get_dashboard(
         "periodo_hasta": hasta.strftime("%Y-%m-%d")
     }
     
+    # Determinar si la voz está habilitada leyendo env en tiempo de petición
+    voice_key = os.getenv("ELEVENLABS_API_KEY") or voice_service.settings.elevenlabs_api_key
+    voice_enabled = bool(voice_key)
+
     return templates.TemplateResponse(
         "reports_dashboard.html",
         {
@@ -94,7 +99,7 @@ async def get_dashboard(
             "periodo": periodo,
             "areas_disponibles": areas_lista,
             # Mostrar/ocultar botón de voz según disponibilidad de API Key
-            "voice_enabled": bool(voice_service.settings.elevenlabs_api_key)
+            "voice_enabled": voice_enabled
         }
     )
 
@@ -289,6 +294,12 @@ async def get_turnos_comparison(
         "hasta": hasta.isoformat(),
         "turnos": turnos_stats
     }
+
+@router.get("/voice-status")
+async def voice_status():
+    """Pequeño endpoint de diagnóstico (no expone la clave)"""
+    has_key = bool(os.getenv("ELEVENLABS_API_KEY") or voice_service.settings.elevenlabs_api_key)
+    return {"enabled": has_key}
 
 @router.get("/compliance-trends")
 async def get_compliance_trends(
