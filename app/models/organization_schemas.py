@@ -11,23 +11,23 @@ class OrganizationCreate(BaseModel):
     name: str = Field(..., min_length=3, max_length=200, description="Nombre de la institución")
     contact_email: EmailStr = Field(..., description="Email de contacto principal")
     contact_phone: Optional[str] = Field(None, max_length=50)
-    
+
     institution_type: str = Field(..., description="Tipo de institución")
     country: str = Field(..., min_length=2)
     city: str = Field(..., min_length=2)
     address: Optional[str] = None
-    
+
     # Datos del admin inicial
     admin_name: str = Field(..., min_length=2, description="Nombre completo del administrador")
     admin_email: EmailStr = Field(..., description="Email del administrador")
     admin_password: str = Field(..., min_length=8, description="Contraseña del administrador")
-    
+
     @validator('name')
     def validate_name(cls, v):
         if not v.strip():
             raise ValueError('El nombre no puede estar vacío')
         return v.strip()
-    
+
     @validator('admin_password')
     def validate_password(cls, v):
         if len(v) < 8:
@@ -39,7 +39,7 @@ class OrganizationCreate(BaseModel):
         if not re.search(r'[0-9]', v):
             raise ValueError('La contraseña debe contener al menos un número')
         return v
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -70,7 +70,7 @@ class OrganizationResponse(BaseModel):
     max_users: int
     created_at: datetime
     trial_ends_at: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
 

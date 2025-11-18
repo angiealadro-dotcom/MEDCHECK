@@ -7,7 +7,7 @@ import sqlite3
 def migrar_bd():
     conn = sqlite3.connect('medcheck.db')
     cursor = conn.cursor()
-    
+
     # Lista de nuevas columnas a agregar
     columnas_nuevas = [
         'paciente_correcto',
@@ -21,11 +21,11 @@ def migrar_bd():
         'alergias_verificadas',
         'responsabilidad_personal'
     ]
-    
+
     # Verificar qué columnas ya existen
     cursor.execute("PRAGMA table_info(checklist_entries)")
     columnas_existentes = [col[1] for col in cursor.fetchall()]
-    
+
     # Agregar solo las columnas que no existan
     for columna in columnas_nuevas:
         if columna not in columnas_existentes:
@@ -37,7 +37,7 @@ def migrar_bd():
                 print(f"⚠️  Error agregando columna '{columna}': {e}")
         else:
             print(f"ℹ️  Columna '{columna}' ya existe")
-    
+
     conn.commit()
     conn.close()
     print("\n✅ Migración completada")

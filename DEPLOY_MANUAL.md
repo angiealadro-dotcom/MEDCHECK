@@ -213,7 +213,7 @@ Una vez completado el deployment:
 
 ### Plan Gratuito incluye:
 - **Cloudflare Pages:** Unlimited requests, unlimited bandwidth
-- **Cloudflare D1:** 
+- **Cloudflare D1:**
   - 5 GB storage
   - 5 million reads/day
   - 100,000 writes/day

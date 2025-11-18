@@ -59,7 +59,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-6">
             <div class="card border-danger" id="teaemCard">
                 <div class="card-header bg-danger text-white">
@@ -157,19 +157,19 @@
             <div class="card shadow-sm border-warning ficha-tecnica">
                 <div class="card-header bg-warning bg-gradient text-dark">
                     <h5 class="mb-0">
-                        <i class="fas fa-calculator me-2"></i> 
+                        <i class="fas fa-calculator me-2"></i>
                         Ficha Técnica CLMC
                     </h5>
                 </div>
                 <div class="card-body">
                     <h6 class="text-primary">Cumplimiento del Uso de la Lista de Cotejo Digital</h6>
                     <hr>
-                    
+
                     <div class="mb-3">
-                        <strong><i class="fas fa-tag"></i> Tipo:</strong> 
+                        <strong><i class="fas fa-tag"></i> Tipo:</strong>
                         <span class="badge bg-info">Indicador de Proceso - Positivo</span>
                     </div>
-                    
+
                     <div class="mb-3">
                         <strong><i class="fas fa-function"></i> Fórmula:</strong>
                         <div class="formula-box p-2 bg-light rounded mt-2">
@@ -185,12 +185,12 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <strong><i class="fas fa-bullseye"></i> Meta:</strong> 
+                        <strong><i class="fas fa-bullseye"></i> Meta:</strong>
                         <span class="text-success">≥ 90%</span> de cumplimiento mensual
                     </div>
-                    
+
                     <div class="mb-2">
                         <strong><i class="fas fa-chart-bar"></i> Umbrales de Control:</strong>
                     </div>
@@ -223,37 +223,37 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mt-3 p-2 border-start border-4 border-warning bg-light">
                         <small class="text-muted">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Interpretación:</strong> Este indicador mide qué porcentaje de administraciones 
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Interpretación:</strong> Este indicador mide qué porcentaje de administraciones
                             de medicamentos tienen TODOS los 10 correctos completados correctamente.
                         </small>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Ficha TEAEM -->
         <div class="col-md-6">
             <div class="card shadow-sm border-danger ficha-tecnica">
                 <div class="card-header bg-danger bg-gradient text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-calculator me-2"></i> 
+                        <i class="fas fa-calculator me-2"></i>
                         Ficha Técnica TEAEM
                     </h5>
                 </div>
                 <div class="card-body">
                     <h6 class="text-primary">Tasa de Eventos Adversos por Errores de Medicación</h6>
                     <hr>
-                    
+
                     <div class="mb-3">
-                        <strong><i class="fas fa-tag"></i> Tipo:</strong> 
+                        <strong><i class="fas fa-tag"></i> Tipo:</strong>
                         <span class="badge bg-danger">Indicador de Resultado - Negativo</span>
                         <small class="text-muted">(menor es mejor)</small>
                     </div>
-                    
+
                     <div class="mb-3">
                         <strong><i class="fas fa-function"></i> Fórmula:</strong>
                         <div class="formula-box p-2 bg-light rounded mt-2">
@@ -269,12 +269,12 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <strong><i class="fas fa-bullseye"></i> Meta:</strong> 
+                        <strong><i class="fas fa-bullseye"></i> Meta:</strong>
                         <span class="text-success">≤ 2%</span> de eventos adversos
                     </div>
-                    
+
                     <div class="mb-2">
                         <strong><i class="fas fa-chart-bar"></i> Umbrales de Control:</strong>
                     </div>
@@ -307,11 +307,11 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mt-3 p-2 border-start border-4 border-danger bg-light">
                         <small class="text-muted">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Interpretación:</strong> Este indicador mide qué porcentaje de administraciones 
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Interpretación:</strong> Este indicador mide qué porcentaje de administraciones
                             tuvieron al menos UN correcto incumplido, representando potencial evento adverso.
                         </small>
                     </div>
@@ -391,26 +391,26 @@ document.getElementById('periodoSelect').addEventListener('change', () => {
 
 async function cargarIndicadores() {
     const dias = document.getElementById('periodoSelect').value;
-    
+
     try {
         // Cargar datos en paralelo
         const [resumenData, tendenciaData] = await Promise.all([
             fetch(`/api/indicadores/resumen?dias=${dias}`).then(r => r.json()),
             fetch(`/api/indicadores/tendencia?semanas=4`).then(r => r.json())
         ]);
-        
+
         // Actualizar CLMC
         actualizarCLMC(resumenData.clmc);
-        
+
         // Actualizar TEAEM
         actualizarTEAEM(resumenData.teaem);
-        
+
         // Actualizar gráfico de tendencia
         actualizarTendencia(tendenciaData);
-        
+
         // Actualizar cumplimiento por correcto
         actualizarCorrectos(resumenData.por_correcto);
-        
+
     } catch (error) {
         console.error('Error cargando indicadores:', error);
         alert('Error al cargar los indicadores. Verifica que hay datos en la base de datos.');
@@ -422,22 +422,22 @@ function actualizarCLMC(data) {
     document.getElementById('clmcValor').textContent = data.valor.toFixed(1) + '%';
     document.getElementById('clmcNumerador').textContent = data.numerador;
     document.getElementById('clmcDenominador').textContent = data.denominador;
-    
+
     const nivel = document.getElementById('clmcNivel');
     nivel.textContent = data.nivel;
     nivel.className = `badge bg-${data.color}`;
-    
+
     const progress = document.getElementById('clmcProgress');
     progress.style.width = data.valor + '%';
     progress.className = `progress-bar bg-${data.color}`;
     progress.textContent = data.valor.toFixed(1) + '%';
-    
+
     // Actualizar ficha técnica
     document.getElementById('clmc_numerador_ficha').textContent = data.numerador;
     document.getElementById('clmc_denominador_ficha').textContent = data.denominador;
     document.getElementById('clmc_resultado_ficha').textContent = data.valor.toFixed(1) + '%';
     document.getElementById('clmc_resultado_ficha').className = `badge bg-${data.color}`;
-    
+
     // Resaltar umbral activo
     document.querySelectorAll('[id^="clmc_umbral_"]').forEach(el => el.classList.remove('activo'));
     if (data.valor >= 90) {
@@ -457,22 +457,22 @@ function actualizarTEAEM(data) {
     document.getElementById('teaemValor').textContent = data.valor.toFixed(1) + '%';
     document.getElementById('teaemNumerador').textContent = data.numerador;
     document.getElementById('teaemDenominador').textContent = data.denominador;
-    
+
     const nivel = document.getElementById('teaemNivel');
     nivel.textContent = data.nivel;
     nivel.className = `badge bg-${data.color}`;
-    
+
     const progress = document.getElementById('teaemProgress');
     progress.style.width = data.valor + '%';
     progress.className = `progress-bar bg-${data.color}`;
     progress.textContent = data.valor.toFixed(1) + '%';
-    
+
     // Actualizar ficha técnica
     document.getElementById('teaem_numerador_ficha').textContent = data.numerador;
     document.getElementById('teaem_denominador_ficha').textContent = data.denominador;
     document.getElementById('teaem_resultado_ficha').textContent = data.valor.toFixed(1) + '%';
     document.getElementById('teaem_resultado_ficha').className = `badge bg-${data.color}`;
-    
+
     // Resaltar umbral activo (para TEAEM menor es mejor)
     document.querySelectorAll('[id^="teaem_umbral_"]').forEach(el => el.classList.remove('activo'));
     if (data.valor <= 2) {
@@ -489,11 +489,11 @@ function actualizarTEAEM(data) {
 
 function actualizarTendencia(data) {
     const ctx = document.getElementById('tendenciaChart').getContext('2d');
-    
+
     if (tendenciaChart) {
         tendenciaChart.destroy();
     }
-    
+
     tendenciaChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -541,11 +541,11 @@ function actualizarTendencia(data) {
 
 function actualizarCorrectos(data) {
     const ctx = document.getElementById('correctosChart').getContext('2d');
-    
+
     if (correctosChart) {
         correctosChart.destroy();
     }
-    
+
     const nombres = data.map(d => d.nombre);
     const porcentajes = data.map(d => d.porcentaje);
     const colores = porcentajes.map(p => {
@@ -553,7 +553,7 @@ function actualizarCorrectos(data) {
         if (p >= 80) return 'rgba(255, 193, 7, 0.8)';
         return 'rgba(220, 53, 69, 0.8)';
     });
-    
+
     correctosChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -586,7 +586,7 @@ function actualizarCorrectos(data) {
             }
         }
     });
-    
+
     // Actualizar tabla
     const tbody = document.querySelector('#correctosTable tbody');
     tbody.innerHTML = data.map(item => `

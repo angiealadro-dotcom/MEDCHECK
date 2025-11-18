@@ -430,7 +430,7 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                         <!-- Vista de Matriz -->
                         <div id="matrixView">
                             <div class="risk-matrix-container mb-3">
@@ -446,7 +446,7 @@
                                             <div class="axis-value">1<br><small>Muy improbable</small></div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Grid de la matriz -->
                                     <div class="risk-grid-container">
                                         <div class="risk-grid" id="riskGrid">
@@ -456,28 +456,28 @@
                                             <div class="risk-cell risk-high" data-prob="5" data-impact="3" data-score="15"></div>
                                             <div class="risk-cell risk-critical" data-prob="5" data-impact="4" data-score="20"></div>
                                             <div class="risk-cell risk-critical" data-prob="5" data-impact="5" data-score="25"></div>
-                                            
+
                                             <!-- Fila 4 (Probable) -->
                                             <div class="risk-cell risk-low" data-prob="4" data-impact="1" data-score="4"></div>
                                             <div class="risk-cell risk-medium" data-prob="4" data-impact="2" data-score="8"></div>
                                             <div class="risk-cell risk-medium" data-prob="4" data-impact="3" data-score="12"></div>
                                             <div class="risk-cell risk-high" data-prob="4" data-impact="4" data-score="16"></div>
                                             <div class="risk-cell risk-critical" data-prob="4" data-impact="5" data-score="20"></div>
-                                            
+
                                             <!-- Fila 3 (Posible) -->
                                             <div class="risk-cell risk-low" data-prob="3" data-impact="1" data-score="3"></div>
                                             <div class="risk-cell risk-low" data-prob="3" data-impact="2" data-score="6"></div>
                                             <div class="risk-cell risk-medium" data-prob="3" data-impact="3" data-score="9"></div>
                                             <div class="risk-cell risk-medium" data-prob="3" data-impact="4" data-score="12"></div>
                                             <div class="risk-cell risk-high" data-prob="3" data-impact="5" data-score="15"></div>
-                                            
+
                                             <!-- Fila 2 (Poco probable) -->
                                             <div class="risk-cell risk-low" data-prob="2" data-impact="1" data-score="2"></div>
                                             <div class="risk-cell risk-low" data-prob="2" data-impact="2" data-score="4"></div>
                                             <div class="risk-cell risk-low" data-prob="2" data-impact="3" data-score="6"></div>
                                             <div class="risk-cell risk-medium" data-prob="2" data-impact="4" data-score="8"></div>
                                             <div class="risk-cell risk-medium" data-prob="2" data-impact="5" data-score="10"></div>
-                                            
+
                                             <!-- Fila 1 (Muy improbable) -->
                                             <div class="risk-cell risk-low" data-prob="1" data-impact="1" data-score="1"></div>
                                             <div class="risk-cell risk-low" data-prob="1" data-impact="2" data-score="2"></div>
@@ -485,7 +485,7 @@
                                             <div class="risk-cell risk-low" data-prob="1" data-impact="4" data-score="4"></div>
                                             <div class="risk-cell risk-low" data-prob="1" data-impact="5" data-score="5"></div>
                                         </div>
-                                        
+
                                         <!-- Eje X: Impacto -->
                                         <div class="risk-axis-x">
                                             <div class="axis-values-x">
@@ -500,7 +500,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Leyenda -->
                             <div class="risk-legend mb-3">
                                 <div class="legend-item">
@@ -520,7 +520,7 @@
                                     <span class="legend-text"><strong>Crítico (20-25):</strong> Emergencia - Intervención urgente</span>
                                 </div>
                             </div>
-                            
+
                             <!-- Panel de información -->
                             <div class="risk-info-panel" id="riskInfoPanel" style="display: none;">
                                 <div class="alert alert-info">
@@ -534,7 +534,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Vista de Lista -->
                         <div id="listView" style="display: none;">
                             <div class="table-responsive">
@@ -562,7 +562,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Gráfico de Distribución -->
         <div class="row mb-4">
             <div class="col-md-6">
@@ -1049,9 +1049,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cargar recomendaciones al inicio
     loadRecommendations();
-    
+
     // ===== MATRIZ DE RIESGOS INTERACTIVA =====
-    
+
     // Definición de riesgos por categoría
     const riskDatabase = {
         // Riesgos críticos (20-25)
@@ -1136,116 +1136,116 @@ document.addEventListener('DOMContentLoaded', function() {
             priority: 'BAJO'
         }
     };
-    
+
     // Función para obtener información del riesgo
     function getRiskInfo(score, prob, impact) {
         const key = score.toString();
-        
+
         // Buscar coincidencia exacta
         if (riskDatabase[key]) return riskDatabase[key];
-        
+
         // Buscar por rangos específicos
         if (score >= 20 && prob === 4) return riskDatabase['20-4'];
         if (score >= 20 && prob === 5) return riskDatabase['20-5'];
         if (score === 12 && prob === 3) return riskDatabase['12-3'];
         if (score === 12 && prob === 4) return riskDatabase['12-4'];
         if (score === 8 && prob === 2) return riskDatabase['8-4'];
-        
+
         // Por defecto según el score
         if (score >= 20) return riskDatabase['25'];
         if (score >= 15) return riskDatabase['15'];
         if (score >= 8) return riskDatabase['10'];
-        
+
         return riskDatabase['default'];
     }
-    
+
     // Manejo de clicks en las celdas de la matriz
     document.querySelectorAll('.risk-cell').forEach(cell => {
         cell.addEventListener('click', function() {
             const prob = parseInt(this.dataset.prob);
             const impact = parseInt(this.dataset.impact);
             const score = parseInt(this.dataset.score);
-            
+
             // Remover clase activa de todas las celdas
             document.querySelectorAll('.risk-cell').forEach(c => c.classList.remove('active'));
-            
+
             // Agregar clase activa a la celda clickeada
             this.classList.add('active');
-            
+
             // Obtener información del riesgo
             const riskInfo = getRiskInfo(score, prob, impact);
-            
+
             // Actualizar panel de información
             const panel = document.getElementById('riskInfoPanel');
             const title = document.getElementById('riskTitle');
             const details = document.getElementById('riskDetails');
-            
+
             const priorityColors = {
                 'CRÍTICO': 'danger',
                 'ALTO': 'warning',
                 'MEDIO': 'info',
                 'BAJO': 'success'
             };
-            
+
             title.innerHTML = `
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 ${riskInfo.title}
                 <span class="badge bg-${priorityColors[riskInfo.priority]} ms-2">${riskInfo.priority}</span>
             `;
-            
+
             details.innerHTML = `
                 <div class="mb-3">
-                    <strong>Puntuación de Riesgo:</strong> ${score} 
+                    <strong>Puntuación de Riesgo:</strong> ${score}
                     <small class="text-muted">(Probabilidad: ${prob} × Impacto: ${impact})</small>
                 </div>
-                
+
                 <div class="mb-3">
                     <strong>Descripción:</strong>
                     <p class="mb-2">${riskInfo.description}</p>
                 </div>
-                
+
                 <div class="mb-3">
                     <strong>Ejemplos Identificados:</strong>
                     <ul class="mb-0">
                         ${riskInfo.examples.map(ex => `<li>${ex}</li>`).join('')}
                     </ul>
                 </div>
-                
+
                 <div class="alert alert-${priorityColors[riskInfo.priority]} mb-0">
                     <strong><i class="fas fa-tasks me-2"></i>Acción Recomendada:</strong>
                     <p class="mb-0 mt-2">${riskInfo.action}</p>
                 </div>
             `;
-            
+
             panel.style.display = 'block';
             panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     });
-    
+
     // Cambio entre vista de matriz y lista
     document.querySelectorAll('[data-view]').forEach(btn => {
         btn.addEventListener('click', function() {
             const view = this.dataset.view;
-            
+
             // Actualizar botones activos
             document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
+
             // Mostrar/ocultar vistas
             document.getElementById('matrixView').style.display = view === 'matrix' ? 'block' : 'none';
             document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
-            
+
             // Si es vista de lista, cargar los riesgos
             if (view === 'list') {
                 loadRiskList();
             }
         });
     });
-    
+
     // Cargar lista de riesgos
     function loadRiskList() {
         const tbody = document.getElementById('riskListBody');
-        
+
         const risks = [
             { name: 'Verificación incompleta de dosis', prob: 4, impact: 5, score: 20, level: 'CRÍTICO' },
             { name: 'Falta de verificación de alergias', prob: 3, impact: 5, score: 15, level: 'ALTO' },
@@ -1254,14 +1254,14 @@ document.addEventListener('DOMContentLoaded', function() {
             { name: 'Registro tardío', prob: 3, impact: 2, score: 6, level: 'BAJO' },
             { name: 'Falla sistema informático', prob: 2, impact: 4, score: 8, level: 'MEDIO' }
         ];
-        
+
         const levelColors = {
             'CRÍTICO': 'danger',
             'ALTO': 'warning',
             'MEDIO': 'info',
             'BAJO': 'success'
         };
-        
+
         tbody.innerHTML = risks.map(risk => {
             const info = getRiskInfo(risk.score, risk.prob, risk.impact);
             return `
@@ -1278,7 +1278,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }).join('');
     }
-    
+
     // Gráfico de distribución de riesgos
     const riskCtx = document.getElementById('riskDistributionChart');
     if (riskCtx) {
@@ -1312,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Gráfico de distribución por área
     const areaCtx = document.getElementById('areaDistributionChart');
     if (areaCtx) {

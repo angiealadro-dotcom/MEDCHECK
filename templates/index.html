@@ -12,7 +12,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .hero-section::before {
         content: '';
         position: absolute;
@@ -23,19 +23,19 @@
         background: radial-gradient(circle, rgba(13,110,253,0.05) 0%, transparent 70%);
         animation: pulse 15s ease-in-out infinite;
     }
-    
+
     @keyframes pulse {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.1); }
     }
-    
+
     .hero-content {
         position: relative;
         z-index: 1;
         max-width: 900px;
         margin: 0 auto;
     }
-    
+
     .hero-title {
         font-size: 3.5rem;
         font-weight: 800;
@@ -43,7 +43,7 @@
         margin-bottom: 20px;
         line-height: 1.2;
     }
-    
+
     .hero-title .highlight {
         color: #0d6efd;
         background: linear-gradient(120deg, #0d6efd 0%, #0dcaf0 100%);
@@ -51,14 +51,14 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     .hero-subtitle {
         font-size: 1.25rem;
         color: #495057;
         margin-bottom: 40px;
         line-height: 1.6;
     }
-    
+
     .hero-cta {
         display: inline-block;
         padding: 18px 50px;
@@ -72,19 +72,19 @@
         transition: all 0.3s ease;
         border: none;
     }
-    
+
     .hero-cta:hover {
         transform: translateY(-3px);
         box-shadow: 0 15px 40px rgba(13,110,253,0.4);
         color: white;
     }
-    
+
     /* Features Section */
     .features-section {
         padding: 80px 0;
         background: white;
     }
-    
+
     .section-title {
         text-align: center;
         font-size: 2.5rem;
@@ -92,7 +92,7 @@
         color: #001f3f;
         margin-bottom: 20px;
     }
-    
+
     .section-subtitle {
         text-align: center;
         font-size: 1.1rem;
@@ -102,14 +102,14 @@
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     .features-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 30px;
         margin-bottom: 40px;
     }
-    
+
     .feature-card {
         background: white;
         padding: 40px 30px;
@@ -119,13 +119,13 @@
         border: 2px solid transparent;
         text-align: center;
     }
-    
+
     .feature-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 15px 40px rgba(0,0,0,0.12);
         border-color: #0d6efd;
     }
-    
+
     .feature-icon {
         width: 80px;
         height: 80px;
@@ -139,37 +139,37 @@
         color: white;
         box-shadow: 0 10px 25px rgba(13,110,253,0.3);
     }
-    
+
     .feature-card.success .feature-icon {
         background: linear-gradient(135deg, #198754 0%, #20c997 100%);
         box-shadow: 0 10px 25px rgba(25,135,84,0.3);
     }
-    
+
     .feature-card.danger .feature-icon {
         background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
         box-shadow: 0 10px 25px rgba(220,53,69,0.3);
     }
-    
+
     .feature-title {
         font-size: 1.4rem;
         font-weight: 700;
         color: #001f3f;
         margin-bottom: 15px;
     }
-    
+
     .feature-description {
         color: #6c757d;
         line-height: 1.6;
         margin-bottom: 20px;
     }
-    
+
     .feature-meta {
         font-size: 0.85rem;
         color: #0d6efd;
         font-weight: 600;
         margin-top: 15px;
     }
-    
+
     .feature-link {
         display: inline-block;
         color: #0d6efd;
@@ -178,25 +178,25 @@
         transition: all 0.2s;
         margin-top: 10px;
     }
-    
+
     .feature-link:hover {
         color: #0a58ca;
         transform: translateX(5px);
     }
-    
+
     /* Indicators Section */
     .indicators-section {
         padding: 80px 0;
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     }
-    
+
     .indicators-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 30px;
         margin-top: 40px;
     }
-    
+
     .indicator-box {
         background: white;
         padding: 30px;
@@ -204,15 +204,15 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         border-left: 5px solid #0d6efd;
     }
-    
+
     .indicator-box.process {
         border-left-color: #0d6efd;
     }
-    
+
     .indicator-box.result {
         border-left-color: #dc3545;
     }
-    
+
     .indicator-label {
         font-size: 0.9rem;
         font-weight: 600;
@@ -221,39 +221,39 @@
         letter-spacing: 1px;
         margin-bottom: 10px;
     }
-    
+
     .indicator-title {
         font-size: 1.3rem;
         font-weight: 700;
         color: #001f3f;
         margin-bottom: 10px;
     }
-    
+
     .indicator-meta {
         font-size: 0.95rem;
         color: #495057;
         line-height: 1.5;
     }
-    
+
     /* Analysis Section */
     .analysis-section {
         padding: 80px 0;
         background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
         color: white;
     }
-    
+
     .analysis-section .section-title,
     .analysis-section .section-subtitle {
         color: white;
     }
-    
+
     .analysis-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 30px;
         margin-top: 50px;
     }
-    
+
     .analysis-card {
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
@@ -262,31 +262,31 @@
         border: 1px solid rgba(255,255,255,0.2);
         transition: all 0.3s ease;
     }
-    
+
     .analysis-card:hover {
         background: rgba(255,255,255,0.15);
         transform: translateY(-5px);
     }
-    
+
     .analysis-title {
         font-size: 1.4rem;
         font-weight: 700;
         margin-bottom: 15px;
         color: #0dcaf0;
     }
-    
+
     .analysis-description {
         color: rgba(255,255,255,0.9);
         line-height: 1.6;
     }
-    
+
     /* CTA Section */
     .cta-section {
         padding: 80px 0;
         background: white;
         text-align: center;
     }
-    
+
     .cta-box {
         background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
         padding: 60px 40px;
@@ -295,27 +295,27 @@
         margin: 0 auto;
         box-shadow: 0 20px 60px rgba(13,110,253,0.3);
     }
-    
+
     .cta-box h2 {
         color: white;
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 20px;
     }
-    
+
     .cta-box p {
         color: rgba(255,255,255,0.95);
         font-size: 1.15rem;
         margin-bottom: 30px;
     }
-    
+
     .cta-buttons {
         display: flex;
         gap: 20px;
         justify-content: center;
         flex-wrap: wrap;
     }
-    
+
     .btn-cta-primary {
         padding: 15px 40px;
         background: white;
@@ -327,13 +327,13 @@
         transition: all 0.3s;
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    
+
     .btn-cta-primary:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         color: #0a58ca;
     }
-    
+
     .btn-cta-secondary {
         padding: 15px 40px;
         background: transparent;
@@ -345,13 +345,13 @@
         font-size: 1.1rem;
         transition: all 0.3s;
     }
-    
+
     .btn-cta-secondary:hover {
         background: white;
         color: #0d6efd;
         transform: translateY(-3px);
     }
-    
+
     /* Footer Info */
     .footer-info {
         background: #001f3f;
@@ -360,16 +360,16 @@
         text-align: center;
         font-size: 0.95rem;
     }
-    
+
     .footer-info a {
         color: #0dcaf0;
         text-decoration: none;
     }
-    
+
     .footer-info a:hover {
         text-decoration: underline;
     }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
         .hero-title {
@@ -400,7 +400,7 @@
                 <span class="highlight">Impulsada por Data.</span>
             </h1>
             <p class="hero-subtitle">
-                MedCheck transforma el proceso de administración de medicamentos, 
+                MedCheck transforma el proceso de administración de medicamentos,
                 reduciendo errores y validando la calidad del servicio clínico en tiempo real.
             </p>
             <a href="/checklist/new" class="hero-cta">
@@ -416,10 +416,10 @@
     <div class="container">
         <h2 class="section-title">Cómo MedCheck Asegura la Calidad</h2>
         <p class="section-subtitle">
-            Sistema integral de verificación basado en los 10 Correctos de administración 
+            Sistema integral de verificación basado en los 10 Correctos de administración
             de medicamentos con análisis en tiempo real.
         </p>
-        
+
         <div class="features-grid">
             <!-- Feature 1: CLMC -->
             <div class="feature-card">
@@ -428,8 +428,8 @@
                 </div>
                 <h3 class="feature-title">Verificación Digital (CLMC)</h3>
                 <p class="feature-description">
-                    Guía paso a paso para el proceso de administración. Garantiza el 
-                    <strong>Cumplimiento del uso de la lista de cotejo</strong> (CLMC) 
+                    Guía paso a paso para el proceso de administración. Garantiza el
+                    <strong>Cumplimiento del uso de la lista de cotejo</strong> (CLMC)
                     antes de la aplicación.
                 </p>
                 <p class="feature-meta">
@@ -448,7 +448,7 @@
                 </div>
                 <h3 class="feature-title">Reportes y Trazabilidad</h3>
                 <p class="feature-description">
-                    Acceso a un registro detallado y auditable de todas las administraciones. 
+                    Acceso a un registro detallado y auditable de todas las administraciones.
                     Monitorea la adherencia al proceso en tiempo real.
                 </p>
                 <p class="feature-meta">
@@ -467,7 +467,7 @@
                 </div>
                 <h3 class="feature-title">Gestión de la Calidad (I&EA)</h3>
                 <p class="feature-description">
-                    Mide el impacto real en la seguridad. Monitoreo constante de Incidentes y 
+                    Mide el impacto real en la seguridad. Monitoreo constante de Incidentes y
                     Eventos Adversos (I&EA) para la mejora continua.
                 </p>
                 <p class="feature-meta">
@@ -487,11 +487,11 @@
     <div class="container">
         <h2 class="section-title">Indicadores Clave para la Mejora Continua</h2>
         <p class="section-subtitle">
-            MedCheck no solo te ayuda a cumplir, sino a medir el impacto directo de 
-            tus buenas prácticas. La gestión de la calidad se basa en dos métricas 
+            MedCheck no solo te ayuda a cumplir, sino a medir el impacto directo de
+            tus buenas prácticas. La gestión de la calidad se basa en dos métricas
             fundamentales y correlacionadas: el Proceso y el Resultado.
         </p>
-        
+
         <div class="indicators-grid">
             <div class="indicator-box process">
                 <div class="indicator-label">
@@ -525,10 +525,10 @@
     <div class="container">
         <h2 class="section-title">Análisis Inteligente y Mitigación de Riesgos</h2>
         <p class="section-subtitle">
-            Transformamos los datos de cumplimiento y eventos en <strong>Decisiones de Calidad</strong> 
+            Transformamos los datos de cumplimiento y eventos en <strong>Decisiones de Calidad</strong>
             y planes de acción concretos para enfrentar los riesgos operativos.
         </p>
-        
+
         <div class="analysis-grid">
             <div class="analysis-card">
                 <h3 class="analysis-title">
@@ -536,7 +536,7 @@
                     Detección de Patrones
                 </h3>
                 <p class="analysis-description">
-                    Identificamos servicios o turnos con baja adherencia (CLMC $\lt 90\%$) y generamos 
+                    Identificamos servicios o turnos con baja adherencia (CLMC $\lt 90\%$) y generamos
                     reportes automáticos para auditoría intensiva.
                 </p>
             </div>
@@ -547,7 +547,7 @@
                     Alerta Proactiva
                 </h3>
                 <p class="analysis-description">
-                    Ante eventos adversos (I&EA), la IA estructura el Análisis de Causa Raíz (ACR) 
+                    Ante eventos adversos (I&EA), la IA estructura el Análisis de Causa Raíz (ACR)
                     inmediato, sugiriendo la re-capacitación obligatoria.
                 </p>
             </div>
@@ -558,7 +558,7 @@
                     Controles de Calidad
                 </h3>
                 <p class="analysis-description">
-                    Definimos la "Acción Correctiva" (ej. presupuesto para Wi-Fi o protocolo de 
+                    Definimos la "Acción Correctiva" (ej. presupuesto para Wi-Fi o protocolo de
                     respaldo) para mitigar fallas tecnológicas críticas.
                 </p>
             </div>
@@ -572,7 +572,7 @@
         <div class="cta-box">
             <h2>¿Listo para Transformar tu Proceso de Medicación?</h2>
             <p>
-                Únete a las instituciones que han reducido errores de medicación 
+                Únete a las instituciones que han reducido errores de medicación
                 y mejorado la seguridad del paciente con MedCheck.
             </p>
             <div class="cta-buttons">
@@ -593,7 +593,7 @@
 <div class="footer-info">
     <div class="container">
         <p class="mb-0">
-            © 2025 MedCheck. Una solución de calidad para la seguridad del paciente. | 
+            © 2025 MedCheck. Una solución de calidad para la seguridad del paciente. |
             Desarrollado con <i class="fas fa-heart text-danger"></i> para profesionales de la salud
         </p>
     </div>

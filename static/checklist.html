@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist - MedCheck</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 16px; }
+        .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .checkbox-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .checkbox-section h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+        .message.error { background: #fee; color: #c33; }
+        .message.success { background: #efe; color: #2a2; }
+        .message.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🏥 MedCheck - Nuevo Registro</h1>
+        <a href="/dashboard.html">← Volver al Dashboard</a>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <h2>Registro de Checklist de Seguridad</h2>
+            
+            <div id="errorMessage" class="message error"></div>
+            <div id="successMessage" class="message success"></div>
+            
+            <form id="checklistForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="area">Área *</label>
+                        <select id="area" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="Urgencias">Urgencias</option>
+                            <option value="Hospitalización">Hospitalización</option>
+                            <option value="Cirugía">Cirugía</option>
+                            <option value="UCI">UCI</option>
+                            <option value="Pediatría">Pediatría</option>
+                            <option value="Farmacia">Farmacia</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="turno">Turno *</label>
+                        <select id="turno" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="Matutino">Matutino</option>
+                            <option value="Vespertino">Vespertino</option>
+                            <option value="Nocturno">Nocturno</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="protocolo_etapa">Protocolo/Etapa *</label>
+                        <input type="text" id="protocolo_etapa" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="item">Item/Medicamento *</label>
+                        <input type="text" id="item" required>
+                    </div>
+                </div>
+
+                <div class="checkbox-section">
+                    <h3>Los 10 Correctos de Administración de Medicamentos</h3>
+                    <div class="checkbox-grid">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="paciente_correcto" required>
+                            <label for="paciente_correcto">Paciente Correcto</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="medicamento_correcto" required>
+                            <label for="medicamento_correcto">Medicamento Correcto</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="dosis_correcta" required>
+                            <label for="dosis_correcta">Dosis Correcta</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="via_correcta" required>
+                            <label for="via_correcta">Vía Correcta</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="hora_correcta" required>
+                            <label for="hora_correcta">Hora Correcta</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="fecha_vencimiento_verificada" required>
+                            <label for="fecha_vencimiento_verificada">Fecha Vencimiento</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="educacion_paciente" required>
+                            <label for="educacion_paciente">Educación Paciente</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="registro_correcto" required>
+                            <label for="registro_correcto">Registro Correcto</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="alergias_verificadas" required>
+                            <label for="alergias_verificadas">Alergias Verificadas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="responsabilidad_personal" required>
+                            <label for="responsabilidad_personal">Responsabilidad Personal</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cumple">¿Cumple con todos los requisitos? *</label>
+                    <select id="cumple" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="observaciones">Observaciones</label>
+                    <textarea id="observaciones" rows="4"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    Guardar Registro
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        const form = document.getElementById('checklistForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+
+            const formData = {
+                area: document.getElementById('area').value,
+                turno: document.getElementById('turno').value,
+                protocolo_etapa: document.getElementById('protocolo_etapa').value,
+                item: document.getElementById('item').value,
+                cumple: document.getElementById('cumple').value === 'true',
+                observaciones: document.getElementById('observaciones').value || null,
+                paciente_correcto: document.getElementById('paciente_correcto').checked,
+                medicamento_correcto: document.getElementById('medicamento_correcto').checked,
+                dosis_correcta: document.getElementById('dosis_correcta').checked,
+                via_correcta: document.getElementById('via_correcta').checked,
+                hora_correcta: document.getElementById('hora_correcta').checked,
+                fecha_vencimiento_verificada: document.getElementById('fecha_vencimiento_verificada').checked,
+                educacion_paciente: document.getElementById('educacion_paciente').checked,
+                registro_correcto: document.getElementById('registro_correcto').checked,
+                alergias_verificadas: document.getElementById('alergias_verificadas').checked,
+                responsabilidad_personal: document.getElementById('responsabilidad_personal').checked,
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
+
+            try {
+                const response = await fetch('/checklist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    successMessage.textContent = '¡Registro guardado exitosamente!';
+                    successMessage.classList.add('show');
+                    form.reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1500);
+                } else {
+                    const data = await response.json();
+                    errorMessage.textContent = data.error || 'Error al guardar el registro';
+                    errorMessage.classList.add('show');
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
+                errorMessage.classList.add('show');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Guardar Registro';
+            }
+        });
+    </script>
+</body>
+</html>

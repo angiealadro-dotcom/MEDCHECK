@@ -11,18 +11,18 @@ from typing import Dict, List, Any
 
 
 class IndicadoresService:
-    
+
     @staticmethod
     def calcular_clmc(db: Session, dias: int = 30) -> Dict[str, Any]:
         """
         Calcula el indicador CLMC (Cumplimiento de Lista de Cotejo MedCheck)
-        
+
         Fórmula: CLMC (%) = (Formatos MedCheck Completos / Total de Administraciones) × 100
-        
+
         Un formato se considera completo si tiene TODOS los 10 correctos marcados como True
         """
         fecha_inicio = datetime.utcnow() - timedelta(days=dias)
-        
+
         # Total de administraciones (entradas donde protocolo_etapa = 'administracion')
         total_administraciones = db.query(ChecklistEntrySQL).filter(
             and_(
@@ -30,7 +30,7 @@ class IndicadoresService:
                 ChecklistEntrySQL.protocolo_etapa == 'administracion'
             )
         ).count()
-        
+
         # Administraciones con checklist completo (todos los 10 correctos = True)
         formatos_completos = db.query(ChecklistEntrySQL).filter(
             and_(
@@ -48,10 +48,10 @@ class IndicadoresService:
                 ChecklistEntrySQL.responsabilidad_personal == True
             )
         ).count()
-        
+
         # Calcular porcentaje
         clmc_porcentaje = (formatos_completos / total_administraciones * 100) if total_administraciones > 0 else 0
-        
+
         # Determinar nivel de calidad
         if clmc_porcentaje >= 90:
             nivel = "Óptimo"
@@ -62,7 +62,7 @@ class IndicadoresService:
         else:
             nivel = "Fuera de Control"
             color = "danger"
-        
+
         return {
             "indicador": "CLMC",
             "nombre": "Cumplimiento del Uso de la Lista de Cotejo Digital MedCheck",
@@ -74,18 +74,18 @@ class IndicadoresService:
             "color": color,
             "periodo_dias": dias
         }
-    
+
     @staticmethod
     def calcular_teaem(db: Session, dias: int = 30) -> Dict[str, Any]:
         """
         Calcula el indicador TEAEM (Tasa de Eventos Adversos por Errores de Medicación)
-        
+
         Fórmula: TEAEM (%) = (Eventos con Incumplimiento ≥1 Correcto / Total de Administraciones) × 100
-        
+
         Un evento adverso se considera cuando AL MENOS UNO de los 10 correctos es False
         """
         fecha_inicio = datetime.utcnow() - timedelta(days=dias)
-        
+
         # Total de administraciones
         total_administraciones = db.query(ChecklistEntrySQL).filter(
             and_(
@@ -93,7 +93,7 @@ class IndicadoresService:
                 ChecklistEntrySQL.protocolo_etapa == 'administracion'
             )
         ).count()
-        
+
         # Eventos adversos (al menos un correcto incumplido)
         eventos_adversos = db.query(ChecklistEntrySQL).filter(
             and_(
@@ -113,10 +113,10 @@ class IndicadoresService:
                 )
             )
         ).count()
-        
+
         # Calcular porcentaje
         teaem_porcentaje = (eventos_adversos / total_administraciones * 100) if total_administraciones > 0 else 0
-        
+
         # Determinar nivel de calidad (menor es mejor para este indicador)
         if teaem_porcentaje <= 2:
             nivel = "Excelencia"
@@ -127,7 +127,7 @@ class IndicadoresService:
         else:
             nivel = "Inaceptable"
             color = "danger"
-        
+
         return {
             "indicador": "TEAEM",
             "nombre": "Tasa de Eventos Adversos por Errores de Medicación",
@@ -139,24 +139,24 @@ class IndicadoresService:
             "color": color,
             "periodo_dias": dias
         }
-    
+
     @staticmethod
     def analisis_por_correcto(db: Session, dias: int = 30) -> List[Dict[str, Any]]:
         """
         Analiza el cumplimiento de cada uno de los 10 correctos
         """
         fecha_inicio = datetime.utcnow() - timedelta(days=dias)
-        
+
         total = db.query(ChecklistEntrySQL).filter(
             and_(
                 ChecklistEntrySQL.fecha_hora >= fecha_inicio,
                 ChecklistEntrySQL.protocolo_etapa == 'administracion'
             )
         ).count()
-        
+
         if total == 0:
             return []
-        
+
         correctos = [
             ("paciente_correcto", "Paciente Correcto"),
             ("medicamento_correcto", "Medicamento Correcto"),
@@ -169,7 +169,7 @@ class IndicadoresService:
             ("alergias_verificadas", "Verificación de Alergias"),
             ("responsabilidad_personal", "Responsabilidad Personal")
         ]
-        
+
         resultados = []
         for campo, nombre in correctos:
             cumplidos = db.query(ChecklistEntrySQL).filter(
@@ -179,9 +179,9 @@ class IndicadoresService:
                     getattr(ChecklistEntrySQL, campo) == True
                 )
             ).count()
-            
+
             porcentaje = (cumplidos / total * 100)
-            
+
             resultados.append({
                 "nombre": nombre,
                 "campo": campo,
@@ -189,9 +189,9 @@ class IndicadoresService:
                 "total": total,
                 "porcentaje": round(porcentaje, 2)
             })
-        
+
         return resultados
-    
+
     @staticmethod
     def tendencia_semanal(db: Session, semanas: int = 4) -> Dict[str, List]:
         """
@@ -202,14 +202,14 @@ class IndicadoresService:
             "clmc": [],
             "teaem": []
         }
-        
+
         for i in range(semanas, 0, -1):
             dias_fin = (i - 1) * 7
             dias_inicio = i * 7
-            
+
             fecha_fin = datetime.utcnow() - timedelta(days=dias_fin)
             fecha_inicio = datetime.utcnow() - timedelta(days=dias_inicio)
-            
+
             # CLMC de la semana
             total_semana = db.query(ChecklistEntrySQL).filter(
                 and_(
@@ -218,7 +218,7 @@ class IndicadoresService:
                     ChecklistEntrySQL.protocolo_etapa == 'administracion'
                 )
             ).count()
-            
+
             completos_semana = db.query(ChecklistEntrySQL).filter(
                 and_(
                     ChecklistEntrySQL.fecha_hora >= fecha_inicio,
@@ -236,7 +236,7 @@ class IndicadoresService:
                     ChecklistEntrySQL.responsabilidad_personal == True
                 )
             ).count()
-            
+
             eventos_semana = db.query(ChecklistEntrySQL).filter(
                 and_(
                     ChecklistEntrySQL.fecha_hora >= fecha_inicio,
@@ -256,12 +256,12 @@ class IndicadoresService:
                     )
                 )
             ).count()
-            
+
             clmc_valor = (completos_semana / total_semana * 100) if total_semana > 0 else 0
             teaem_valor = (eventos_semana / total_semana * 100) if total_semana > 0 else 0
-            
+
             resultados["semanas"].append(f"Semana -{i}")
             resultados["clmc"].append(round(clmc_valor, 2))
             resultados["teaem"].append(round(teaem_valor, 2))
-        
+
         return resultados

@@ -46,7 +46,7 @@ async def register_organization(org_data: OrganizationCreate, db: Session = Depe
             status_code=400,
             detail="Ya existe un usuario con ese email"
         )
-    
+
     # Generar slug único
     base_slug = generate_slug(org_data.name)
     slug = base_slug
@@ -54,7 +54,7 @@ async def register_organization(org_data: OrganizationCreate, db: Session = Depe
     while db.query(Organization).filter(Organization.slug == slug).first():
         slug = f"{base_slug}-{counter}"
         counter += 1
-    
+
     # Crear organización
     trial_end = datetime.utcnow() + timedelta(days=30)  # 30 días de trial
     new_org = Organization(
@@ -71,10 +71,10 @@ async def register_organization(org_data: OrganizationCreate, db: Session = Depe
         max_users=5,
         trial_ends_at=trial_end
     )
-    
+
     db.add(new_org)
     db.flush()  # Para obtener el ID
-    
+
     # Crear usuario administrador
     hashed_password = get_password_hash(org_data.admin_password)
     admin_user = User(
@@ -87,11 +87,11 @@ async def register_organization(org_data: OrganizationCreate, db: Session = Depe
         is_super_admin=False,
         organization_id=new_org.id
     )
-    
+
     db.add(admin_user)
     db.commit()
     db.refresh(new_org)
-    
+
     return new_org
 
 @router.get("/list", response_class=HTMLResponse)
@@ -103,22 +103,22 @@ async def list_organizations(
     """Panel de administración de organizaciones (solo super admin)"""
     if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Acceso denegado")
-    
+
     # Obtener todas las organizaciones con estadísticas
     orgs = db.query(Organization).order_by(Organization.created_at.desc()).all()
-    
+
     org_stats = []
     for org in orgs:
         # Contar usuarios
         total_users = db.query(func.count(User.id)).filter(
             User.organization_id == org.id
         ).scalar() or 0
-        
+
         active_users = db.query(func.count(User.id)).filter(
             User.organization_id == org.id,
             User.is_active == True
         ).scalar() or 0
-        
+
         # Contar checklists (importar modelo si existe)
         try:
             from app.models.checklist_entry import ChecklistEntrySQL
@@ -127,7 +127,7 @@ async def list_organizations(
             ).scalar() or 0
         except:
             total_checklists = 0
-        
+
         org_stats.append({
             "id": org.id,
             "name": org.name,
@@ -144,7 +144,7 @@ async def list_organizations(
             "active_users": active_users,
             "total_checklists": total_checklists
         })
-    
+
     return templates.TemplateResponse("super_admin_dashboard.html", {
         "request": request,
         "title": "Panel de Super Admin",
@@ -161,14 +161,14 @@ async def toggle_organization_active(
     """Activar/desactivar una organización"""
     if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Acceso denegado")
-    
+
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organización no encontrada")
-    
+
     org.is_active = not org.is_active
     db.commit()
-    
+
     return {"success": True, "is_active": org.is_active}
 
 @router.get("/api/stats")
@@ -179,11 +179,11 @@ async def get_platform_stats(
     """Estadísticas generales de la plataforma"""
     if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Acceso denegado")
-    
+
     total_orgs = db.query(func.count(Organization.id)).scalar() or 0
     active_orgs = db.query(func.count(Organization.id)).filter(Organization.is_active == True).scalar() or 0
     total_users = db.query(func.count(User.id)).scalar() or 0
-    
+
     return {
         "total_organizations": total_orgs,
         "active_organizations": active_orgs,

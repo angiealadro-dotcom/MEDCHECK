@@ -16,7 +16,7 @@ class ChecklistEntrySQL(Base):
     observaciones = Column(String, nullable=True)
     usuario = Column(String, index=True, nullable=True)
     metadatos = Column(JSON, nullable=True)
-    
+
     # Los 10 Correctos para administración de medicamentos
     paciente_correcto = Column(Boolean, default=False)
     medicamento_correcto = Column(Boolean, default=False)

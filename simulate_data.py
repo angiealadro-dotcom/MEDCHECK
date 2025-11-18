@@ -14,18 +14,18 @@ def generate_simulated_data():
     - Escenario 3: Cumplimiento bueno (80-90%) - Semana -2
     - Escenario 4: Cumplimiento excelente (90-100%) - Semana -1 (actual)
     """
-    
+
     conn = sqlite3.connect('medcheck.db')
     cursor = conn.cursor()
-    
+
     # Limpiar datos anteriores (opcional - comentar si quieres mantener datos reales)
     print("⚠️  Limpiando datos antiguos de administración...")
     cursor.execute("DELETE FROM checklist_entries WHERE protocolo_etapa = 'administracion'")
     conn.commit()
-    
+
     now = datetime.now()
     total_entries = 0
-    
+
     # Definir escenarios por semana
     scenarios = [
         {
@@ -57,31 +57,31 @@ def generate_simulated_data():
             'days': 10  # Más días para simular semana actual
         }
     ]
-    
+
     areas = ['Urgencias', 'Hospitalización', 'UCI', 'Pediatría']
     turnos = ['Matutino', 'Vespertino', 'Nocturno']
     usuarios = ['Enf. María González', 'Enf. Juan Pérez', 'Enf. Ana Martínez', 'Enf. Carlos López']
-    
+
     print("\n" + "="*70)
     print("🎯 GENERANDO DATOS SIMULADOS PARA ANÁLISIS DE TENDENCIAS")
     print("="*70 + "\n")
-    
+
     for scenario in scenarios:
         print(f"\n📊 {scenario['name']}")
         print(f"   Tasa de cumplimiento esperada: {scenario['compliance_rate']*100:.0f}%")
         print(f"   Generando {scenario['entries_per_day']} administraciones por día durante {scenario['days']} días...")
-        
+
         scenario_entries = 0
         scenario_compliant = 0
-        
+
         for day in range(scenario['days']):
             date_offset = timedelta(weeks=scenario['weeks_ago'], days=day)
             entry_date = now - date_offset
-            
+
             for entry_num in range(scenario['entries_per_day']):
                 # Determinar si esta entrada será completa o tendrá errores
                 is_compliant = random.random() < scenario['compliance_rate']
-                
+
                 # Generar valores para los 10 correctos
                 if is_compliant:
                     # Todos los correctos marcados (100% cumplimiento)
@@ -102,24 +102,24 @@ def generate_simulated_data():
                     # Generar errores aleatorios (1-3 correctos fallados)
                     num_errores = random.randint(1, 3)
                     correctos_keys = [
-                        'paciente_correcto', 'medicamento_correcto', 'dosis_correcta', 
+                        'paciente_correcto', 'medicamento_correcto', 'dosis_correcta',
                         'via_correcta', 'hora_correcta', 'fecha_vencimiento_verificada',
                         'educacion_paciente', 'registro_correcto', 'alergias_verificadas',
                         'responsabilidad_personal'
                     ]
-                    
+
                     # Todos en 1 inicialmente
                     correctos = {key: 1 for key in correctos_keys}
-                    
+
                     # Marcar algunos como 0 (errores)
                     errores_keys = random.sample(correctos_keys, num_errores)
                     for key in errores_keys:
                         correctos[key] = 0
-                
+
                 # Insertar entrada en la base de datos
                 cursor.execute("""
                     INSERT INTO checklist_entries (
-                        fecha_hora, area, turno, protocolo_etapa, item, cumple, 
+                        fecha_hora, area, turno, protocolo_etapa, item, cumple,
                         observaciones, usuario, metadatos,
                         paciente_correcto, medicamento_correcto, dosis_correcta,
                         via_correcta, hora_correcta, fecha_vencimiento_verificada,
@@ -147,22 +147,22 @@ def generate_simulated_data():
                     correctos['alergias_verificadas'],
                     correctos['responsabilidad_personal']
                 ))
-                
+
                 scenario_entries += 1
                 total_entries += 1
-        
+
         conn.commit()
-        
+
         # Calcular estadísticas reales del escenario
         actual_compliance = (scenario_compliant / scenario_entries) * 100
         actual_adverse = ((scenario_entries - scenario_compliant) / scenario_entries) * 100
-        
+
         print(f"   ✅ Generadas {scenario_entries} administraciones")
         print(f"   📈 CLMC real: {actual_compliance:.1f}% ({scenario_compliant}/{scenario_entries} completas)")
         print(f"   ⚠️  TEAEM real: {actual_adverse:.1f}% ({scenario_entries - scenario_compliant}/{scenario_entries} con errores)")
-    
+
     conn.close()
-    
+
     print("\n" + "="*70)
     print(f"✨ COMPLETADO: {total_entries} administraciones simuladas generadas")
     print("="*70)

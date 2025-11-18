@@ -88,7 +88,7 @@ async def get_resumen(dias: int = 30, db: Session = Depends(get_db)):
         teaem = IndicadoresService.calcular_teaem(db, dias)
         por_correcto = IndicadoresService.analisis_por_correcto(db, dias)
         tendencia = IndicadoresService.tendencia_semanal(db, 4)
-        
+
         return JSONResponse(content={
             "clmc": clmc,
             "teaem": teaem,

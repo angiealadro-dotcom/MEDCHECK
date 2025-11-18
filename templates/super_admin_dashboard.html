@@ -131,8 +131,8 @@
                                     <button class="btn btn-outline-primary" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="btn btn-outline-warning" 
-                                            onclick="toggleOrganization({{ org.id }})" 
+                                    <button class="btn btn-outline-warning"
+                                            onclick="toggleOrganization({{ org.id }})"
                                             title="Activar/Desactivar">
                                         <i class="fas fa-power-off"></i>
                                     </button>
@@ -152,7 +152,7 @@ async function toggleOrganization(orgId) {
     if (!confirm('¿Estás seguro de cambiar el estado de esta organización?')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`/organizations/${orgId}/toggle-active`, {
             method: 'POST',
@@ -160,7 +160,7 @@ async function toggleOrganization(orgId) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (response.ok) {
             location.reload();
         } else {

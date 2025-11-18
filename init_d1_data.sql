@@ -3,9 +3,9 @@
 
 -- 1. Crear organización demo
 INSERT INTO organizations (
-    name, 
-    slug, 
-    contact_email, 
+    name,
+    slug,
+    contact_email,
     contact_phone,
     institution_type,
     country,

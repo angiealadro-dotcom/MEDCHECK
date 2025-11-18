@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Organización - MedCheck</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .register-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .register-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .register-header h1 { font-size: 28px; margin-bottom: 10px; }
+        .register-header p { opacity: 0.9; font-size: 14px; }
+        .register-body { padding: 40px 30px; }
+        .section-title {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .section-title:first-child { margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .form-group label .required { color: #e74c3c; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message, .success-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+        .error-message { background: #fee; color: #c33; }
+        .success-message { background: #efe; color: #2a2; }
+        .error-message.show, .success-message.show { display: block; }
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .login-link a { color: #667eea; text-decoration: none; font-weight: 500; }
+        .login-link a:hover { text-decoration: underline; }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <h1>🏥 Registrar Organización</h1>
+            <p>Prueba gratuita de 30 días - No se requiere tarjeta de crédito</p>
+        </div>
+        
+        <div class="register-body">
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+            
+            <form id="registerForm">
+                <div class="section-title">Información de la Organización</div>
+                
+                <div class="form-group">
+                    <label for="name">Nombre de la Organización <span class="required">*</span></label>
+                    <input type="text" id="name" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="institution_type">Tipo de Institución <span class="required">*</span></label>
+                        <select id="institution_type" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="hospital">Hospital</option>
+                            <option value="clinic">Clínica</option>
+                            <option value="health_center">Centro de Salud</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="country">País <span class="required">*</span></label>
+                        <input type="text" id="country" value="México" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city">Ciudad <span class="required">*</span></label>
+                        <input type="text" id="city" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact_phone">Teléfono</label>
+                        <input type="tel" id="contact_phone">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Dirección</label>
+                    <input type="text" id="address">
+                </div>
+                
+                <div class="section-title">Administrador de la Cuenta</div>
+                
+                <div class="form-group">
+                    <label for="admin_full_name">Nombre Completo <span class="required">*</span></label>
+                    <input type="text" id="admin_full_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contact_email">Email <span class="required">*</span></label>
+                    <input type="email" id="contact_email" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="admin_username">Usuario <span class="required">*</span></label>
+                        <input type="text" id="admin_username" required autocomplete="username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="admin_password">Contraseña <span class="required">*</span></label>
+                        <input type="password" id="admin_password" required autocomplete="new-password" minlength="8">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-register" id="registerBtn">
+                    Crear Cuenta
+                </button>
+            </form>
+            
+            <div class="login-link">
+                ¿Ya tienes cuenta? <a href="/login.html">Iniciar Sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const registerBtn = document.getElementById('registerBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                institution_type: document.getElementById('institution_type').value,
+                country: document.getElementById('country').value,
+                city: document.getElementById('city').value,
+                contact_email: document.getElementById('contact_email').value,
+                contact_phone: document.getElementById('contact_phone').value || null,
+                address: document.getElementById('address').value || null,
+                admin_username: document.getElementById('admin_username').value,
+                admin_password: document.getElementById('admin_password').value,
+                admin_full_name: document.getElementById('admin_full_name').value,
+            };
+            
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<span class="loading"></span>Creando cuenta...';
+            
+            try {
+                const response = await fetch('/organizations/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successMessage.textContent = '¡Cuenta creada exitosamente! Redirigiendo al login...';
+                    successMessage.classList.add('show');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    errorMessage.textContent = data.error || 'Error al crear la cuenta';
+                    errorMessage.classList.add('show');
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = 'Crear Cuenta';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
+                errorMessage.classList.add('show');
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = 'Crear Cuenta';
+            }
+        });
+    </script>
+</body>
+</html>

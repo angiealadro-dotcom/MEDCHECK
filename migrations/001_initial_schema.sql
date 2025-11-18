@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS checklist_entries (
     observaciones TEXT,
     usuario VARCHAR(255),
     metadatos TEXT,
-    
+
     -- Los 10 Correctos
     paciente_correcto BOOLEAN DEFAULT 0,
     medicamento_correcto BOOLEAN DEFAULT 0,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS checklist_entries (
     registro_correcto BOOLEAN DEFAULT 0,
     alergias_verificadas BOOLEAN DEFAULT 0,
     responsabilidad_personal BOOLEAN DEFAULT 0,
-    
+
     -- Multi-tenancy
     organization_id INTEGER DEFAULT 1,
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
