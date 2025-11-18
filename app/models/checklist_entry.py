@@ -16,3 +16,15 @@ class ChecklistEntrySQL(Base):
     observaciones = Column(String, nullable=True)
     usuario = Column(String, index=True, nullable=True)
     metadatos = Column(JSON, nullable=True)
+    
+    # Los 10 Correctos para administración de medicamentos
+    paciente_correcto = Column(Boolean, default=False)
+    medicamento_correcto = Column(Boolean, default=False)
+    dosis_correcta = Column(Boolean, default=False)
+    via_correcta = Column(Boolean, default=False)
+    hora_correcta = Column(Boolean, default=False)
+    fecha_vencimiento_verificada = Column(Boolean, default=False)
+    educacion_paciente = Column(Boolean, default=False)
+    registro_correcto = Column(Boolean, default=False)
+    alergias_verificadas = Column(Boolean, default=False)
+    responsabilidad_personal = Column(Boolean, default=False)

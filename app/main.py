@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from app.db.database import create_tables, check_db_connection, SessionLocal
-from app.routers import auth_simple, checklist, reports
+from app.routers import auth_simple, checklist, reports, indicadores
 from app.routers import notifications
 from app.routers import reminders
 from app.routers import alerts_sqlite as alerts
@@ -57,6 +57,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_simple.router)
 app.include_router(checklist.router, prefix="/checklist", tags=["checklist"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])
+app.include_router(indicadores.router, tags=["indicadores"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(notifications.router)
 app.include_router(reminders.router)
@@ -74,14 +75,6 @@ async def root(request: Request):
 async def login_page(request: Request):
     return templates.TemplateResponse(
         "login.html",
-        {"request": request}
-    )
-
-# Página de Indicadores de Calidad
-@app.get("/indicadores-calidad", response_class=HTMLResponse)
-async def indicadores_calidad(request: Request):
-    return templates.TemplateResponse(
-        "indicadores_calidad.html",
         {"request": request}
     )
 
