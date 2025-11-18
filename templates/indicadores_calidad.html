@@ -8,282 +8,139 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="text-primary">
-                <i class="fas fa-chart-line"></i> Indicadores de Calidad en Salud
+                <i class="fas fa-chart-line"></i> Indicadores de Calidad en Tiempo Real
             </h1>
+            <p class="lead">Análisis en tiempo real basado en datos de MedCheck</p>
             <hr>
         </div>
     </div>
 
-    <!-- Objetivos y Competencias -->
+    <!-- Selector de Período -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-bullseye"></i> Objetivos</h5>
-                </div>
-                <div class="card-body">
-                    <ol>
-                        <li><strong>Comprender</strong> el papel de los indicadores de calidad como herramientas para medir y mejorar la atención en salud</li>
-                        <li><strong>Aplicar</strong> el pensamiento crítico para interpretar y utilizar indicadores en casos clínicos reales y simulados</li>
-                        <li><strong>Proponer</strong> mejoras basadas en los resultados de indicadores</li>
-                    </ol>
-                </div>
-            </div>
+        <div class="col-md-4">
+            <label class="form-label"><i class="fas fa-calendar"></i> Período de Análisis</label>
+            <select class="form-select" id="periodoSelect">
+                <option value="7">Últimos 7 días</option>
+                <option value="30" selected>Últimos 30 días</option>
+                <option value="90">Últimos 90 días</option>
+            </select>
         </div>
-        <div class="col-md-6">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5><i class="fas fa-graduation-cap"></i> Competencias Específicas</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-check text-success"></i> Distinguir los distintos tipos de indicadores de calidad</li>
-                        <li><i class="fas fa-check text-success"></i> Conocer las fuentes de información para obtención y análisis</li>
-                        <li><i class="fas fa-check text-success"></i> Interpretar datos e informes de indicadores clave</li>
-                        <li><i class="fas fa-check text-success"></i> Relacionar resultados con acciones de mejora continua</li>
-                        <li><i class="fas fa-check text-success"></i> Evaluar cumplimiento de estándares de calidad</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="col-md-8 d-flex align-items-end">
+            <button class="btn btn-primary" onclick="cargarIndicadores()">
+                <i class="fas fa-sync"></i> Actualizar Datos
+            </button>
         </div>
     </div>
 
-    <!-- Los 10 Correctos -->
+    <!-- Indicadores Principales (Cards) -->
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-info">
-                <div class="card-header bg-info text-white">
-                    <h4><i class="fas fa-pills"></i> Los 10 Correctos para la Administración de Medicamentos</h4>
+        <div class="col-md-6">
+            <div class="card border-warning" id="clmcCard">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-tasks"></i> CLMC - Cumplimiento de Lista de Cotejo</h5>
+                    <small>Indicador de Proceso</small>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="list-group mb-3">
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-user text-primary"></i> 1. Paciente Correcto</h6>
-                                    <p class="mb-1 small">Verificación de identidad con dos identificadores únicos</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-capsules text-primary"></i> 2. Medicamento Correcto</h6>
-                                    <p class="mb-1 small">Verificar nombre genérico y comercial contra orden médica</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-weight text-primary"></i> 3. Dosis Correcta</h6>
-                                    <p class="mb-1 small">Validar cantidad exacta prescrita y unidades de medida</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-syringe text-primary"></i> 4. Vía de Administración Correcta</h6>
-                                    <p class="mb-1 small">Confirmar ruta prescrita (oral, IV, IM, SC, etc.)</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-clock text-primary"></i> 5. Hora de Administración Correcta</h6>
-                                    <p class="mb-1 small">Respetar intervalos y horarios establecidos</p>
-                                </div>
-                            </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="display-3 mb-0" id="clmcValor">
+                                <span class="spinner-border" role="status"></span>
+                            </h1>
+                            <p class="text-muted mb-0">Meta: ≥ 90%</p>
                         </div>
-                        <div class="col-md-6">
-                            <div class="list-group mb-3">
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-calendar-check text-primary"></i> 6. Fecha de Vencimiento Correcta</h6>
-                                    <p class="mb-1 small">Verificar que el medicamento no esté caducado</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-chalkboard-teacher text-primary"></i> 7. Educación al Paciente</h6>
-                                    <p class="mb-1 small">Informar sobre el medicamento y su propósito</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-file-medical text-primary"></i> 8. Registro Correcto</h6>
-                                    <p class="mb-1 small">Documentar administración inmediatamente</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-exclamation-triangle text-warning"></i> 9. Verificación de Alergias</h6>
-                                    <p class="mb-1 small">Indagar historial de alergias medicamentosas</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <h6 class="mb-1"><i class="fas fa-user-shield text-primary"></i> 10. Responsabilidad Personal</h6>
-                                    <p class="mb-1 small">Preparar, administrar y registrar personalmente</p>
-                                </div>
-                            </div>
+                        <div class="text-end">
+                            <p class="mb-0"><span id="clmcNumerador">-</span> / <span id="clmcDenominador">-</span></p>
+                            <span class="badge" id="clmcNivel">Cargando...</span>
                         </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar" id="clmcProgress" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-danger" id="teaemCard">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-heartbeat"></i> TEAEM - Tasa de Eventos Adversos</h5>
+                    <small>Indicador de Resultado</small>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="display-3 mb-0" id="teaemValor">
+                                <span class="spinner-border" role="status"></span>
+                            </h1>
+                            <p class="text-muted mb-0">Meta: ≤ 2%</p>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0"><span id="teaemNumerador">-</span> / <span id="teaemDenominador">-</span></p>
+                            <span class="badge" id="teaemNivel">Cargando...</span>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar" id="teaemProgress" role="progressbar" style="width: 0%">0%</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Fichas Técnicas -->
+    <!-- Gráfico de Tendencia -->
     <div class="row mb-4">
         <div class="col-12">
-            <h3 class="text-primary"><i class="fas fa-clipboard-list"></i> Fichas Técnicas de Indicadores</h3>
-            <hr>
-        </div>
-    </div>
-
-    <!-- Indicador de Proceso -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h5><i class="fas fa-tasks"></i> Indicador de Proceso: CLMC</h5>
-                    <small>Cumplimiento del Uso de la Lista de Cotejo Digital "MedCheck"</small>
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-area"></i> Tendencia de Indicadores (Últimas 4 Semanas)</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-bordered table-sm">
-                        <tbody>
-                            <tr>
-                                <th width="25%" class="bg-light">Tipo de Indicador</th>
-                                <td><span class="badge bg-warning text-dark">Proceso</span> - Agrupación de datos - Positivo</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Propósito</th>
-                                <td>Evaluar el cumplimiento del uso del checklist digital MedCheck previo a cada administración de medicamentos para reducir errores de medicación</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Fórmula de Cálculo</th>
-                                <td>
-                                    <code>CLMC (%) = (Formatos MedCheck Completos / Total de Administraciones) × 100</code>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Meta</th>
-                                <td><strong>≥ 90%</strong> de cumplimiento mensual</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Umbrales</th>
-                                <td>
-                                    <span class="badge bg-success">90-100%: Calidad Óptima</span>
-                                    <span class="badge bg-warning text-dark">80-89%: Zona de Alerta</span>
-                                    <span class="badge bg-danger">&lt;80%: Fuera de Control</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Frecuencia</th>
-                                <td>Mensual con revisiones semanales</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Fuente de Datos</th>
-                                <td>Sistema MedCheck - Lista de cotejo digital integrada</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <canvas id="tendenciaChart" height="80"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Indicador de Resultado -->
+    <!-- Cumplimiento por Correcto -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h5><i class="fas fa-heartbeat"></i> Indicador de Resultado: TEAEM</h5>
-                    <small>Tasa de Eventos Adversos por Errores de Medicación</small>
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-pills"></i> Cumplimiento de Los 10 Correctos</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-bordered table-sm">
-                        <tbody>
-                            <tr>
-                                <th width="25%" class="bg-light">Tipo de Indicador</th>
-                                <td><span class="badge bg-danger">Resultado</span> - Agrupación de datos - Negativo (menor es mejor)</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Propósito</th>
-                                <td>Medir la incidencia de eventos adversos relacionados con errores en la administración de medicamentos donde se documentó incumplimiento de uno o más de los 10 correctos</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Fórmula de Cálculo</th>
-                                <td>
-                                    <code>TEAEM (%) = (Eventos con Incumplimiento ≥1 Correcto / Total de Administraciones) × 100</code>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Meta</th>
-                                <td><strong>≤ 2%</strong> de eventos adversos por error de medicación</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Umbrales</th>
-                                <td>
-                                    <span class="badge bg-success">0-2%: Excelencia</span>
-                                    <span class="badge bg-warning text-dark">2.1-5%: Aceptable con Vigilancia</span>
-                                    <span class="badge bg-danger">&gt;5%: Inaceptable</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Frecuencia</th>
-                                <td>Mensual con revisiones semanales</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Fuentes de Datos</th>
-                                <td>Sistema MedCheck + Farmacovigilancia + Expediente Clínico Electrónico</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <canvas id="correctosChart" height="100"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Matriz de Riesgos -->
+    <!-- Tabla Detallada de Correctos -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-dark">
+            <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h5><i class="fas fa-shield-alt"></i> Matriz de Riesgos y Toma de Decisiones</h5>
+                    <h5><i class="fas fa-table"></i> Detalle de Cumplimiento por Correcto</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm table-hover">
+                        <table class="table table-hover table-striped" id="correctosTable">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Riesgo Identificado</th>
-                                    <th>Probabilidad</th>
-                                    <th>Impacto</th>
-                                    <th>Nivel</th>
-                                    <th>Estrategia de Mitigación</th>
+                                    <th>Correcto</th>
+                                    <th>Cumplidos</th>
+                                    <th>Total</th>
+                                    <th>Porcentaje</th>
+                                    <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Error en identificación del paciente</td>
-                                    <td>Media</td>
-                                    <td>Alto</td>
-                                    <td><span class="badge bg-danger">ALTO</span></td>
-                                    <td>Doble verificación con MedCheck</td>
-                                </tr>
-                                <tr>
-                                    <td>Medicamento incorrecto</td>
-                                    <td>Baja</td>
-                                    <td>Muy Alto</td>
-                                    <td><span class="badge bg-danger">ALTO</span></td>
-                                    <td>Escaneo de código de barras + verificación</td>
-                                </tr>
-                                <tr>
-                                    <td>Dosis incorrecta</td>
-                                    <td>Media</td>
-                                    <td>Alto</td>
-                                    <td><span class="badge bg-danger">ALTO</span></td>
-                                    <td>Calculadora integrada y alertas automáticas</td>
-                                </tr>
-                                <tr>
-                                    <td>Vía de administración incorrecta</td>
-                                    <td>Baja</td>
-                                    <td>Alto</td>
-                                    <td><span class="badge bg-warning text-dark">MEDIO</span></td>
-                                    <td>Checklist obligatorio antes de administración</td>
-                                </tr>
-                                <tr>
-                                    <td>Hora fuera de ventana</td>
-                                    <td>Alta</td>
-                                    <td>Medio</td>
-                                    <td><span class="badge bg-warning text-dark">MEDIO</span></td>
-                                    <td>Recordatorios y notificaciones push</td>
-                                </tr>
-                                <tr>
-                                    <td>No verificar alergias</td>
-                                    <td>Baja</td>
-                                    <td>Muy Alto</td>
-                                    <td><span class="badge bg-danger">ALTO</span></td>
-                                    <td>Alerta automática al acceder perfil del paciente</td>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -293,275 +150,259 @@
         </div>
     </div>
 
-    <!-- Diagrama de Gantt -->
+    <!-- Fichas Técnicas (Colapsables) -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-calendar-alt"></i> Diagrama de Gantt - Cronograma del Proyecto</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th>Fase</th>
-                                    <th>M1</th>
-                                    <th>M2</th>
-                                    <th>M3</th>
-                                    <th>M4</th>
-                                    <th>M5</th>
-                                    <th>M6</th>
-                                    <th>M7</th>
-                                    <th>M8</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>1. Planificación</strong></td>
-                                    <td class="bg-success"></td>
-                                    <td class="bg-success"></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>2. Desarrollo</strong></td>
-                                    <td></td>
-                                    <td class="bg-info"></td>
-                                    <td class="bg-info"></td>
-                                    <td class="bg-info"></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>3. Capacitación</strong></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="bg-warning"></td>
-                                    <td class="bg-warning"></td>
-                                    <td class="bg-warning"></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>4. Implementación</strong></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="bg-primary"></td>
-                                    <td class="bg-primary"></td>
-                                    <td class="bg-primary"></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>5. Monitoreo</strong></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="bg-success"></td>
-                                    <td class="bg-success"></td>
-                                    <td class="bg-success"></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>6. Documentación</strong></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="bg-secondary"></td>
-                                    <td class="bg-secondary"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        <h6>Hitos Clave:</h6>
-                        <ul>
-                            <li><i class="fas fa-flag-checkered text-success"></i> <strong>M1:</strong> Aprobación del proyecto</li>
-                            <li><i class="fas fa-flag-checkered text-info"></i> <strong>M3:</strong> Prototipo funcional</li>
-                            <li><i class="fas fa-flag-checkered text-warning"></i> <strong>M5:</strong> Finalización de capacitación</li>
-                            <li><i class="fas fa-flag-checkered text-primary"></i> <strong>M6:</strong> Inicio de piloto</li>
-                            <li><i class="fas fa-flag-checkered text-primary"></i> <strong>M7:</strong> Implementación completa</li>
-                            <li><i class="fas fa-flag-checkered text-secondary"></i> <strong>M8:</strong> Evaluación de resultados</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lista de Cotejo -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5><i class="fas fa-check-double"></i> Lista de Cotejo - Construcción de Indicadores</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-sm">
-                            <thead class="table-success">
-                                <tr>
-                                    <th>Criterio</th>
-                                    <th width="15%" class="text-center">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>¿Se detecta claramente la necesidad o el objetivo de mejora?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se ha conformado el equipo multidisciplinario?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se seleccionó un proceso o área específica a evaluar?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿El indicador tiene un nombre claro y definido?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se definió operacionalmente (numerador, denominador, unidad)?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se identificó la fuente de información?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se estableció la frecuencia de medición?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Cumple con criterios de calidad (relevante, válido, confiable)?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se definieron metas o estándares de referencia?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                                <tr>
-                                    <td>¿Se planificó quién, cómo y cuándo se recogerán los datos?</td>
-                                    <td class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Metodología SMART -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-info">
-                <div class="card-header bg-info text-white">
-                    <h5><i class="fas fa-lightbulb"></i> Metodología SMART Aplicada</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary">Indicador CLMC (Proceso)</h6>
-                            <table class="table table-sm table-bordered">
-                                <tr>
-                                    <th width="30%" class="bg-light">S - Específico</th>
-                                    <td>Mide % de administraciones con checklist completo</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">M - Medible</th>
-                                    <td>Numerador y denominador definidos claramente</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">A - Alcanzable</th>
-                                    <td>Meta 90% es ambiciosa pero realista</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">R - Relevante</th>
-                                    <td>Relacionado con seguridad del paciente</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">T - Temporal</th>
-                                    <td>Medición mensual en 8 meses</td>
-                                </tr>
-                            </table>
+            <div class="accordion" id="fichasTecnicas">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fichaCLMC">
+                            <i class="fas fa-info-circle me-2"></i> Ficha Técnica CLMC
+                        </button>
+                    </h2>
+                    <div id="fichaCLMC" class="accordion-collapse collapse" data-bs-parent="#fichasTecnicas">
+                        <div class="accordion-body">
+                            <h5>Cumplimiento del Uso de la Lista de Cotejo Digital "MedCheck"</h5>
+                            <p><strong>Tipo:</strong> Indicador de Proceso - Positivo</p>
+                            <p><strong>Fórmula:</strong> <code>CLMC (%) = (Formatos MedCheck Completos / Total de Administraciones) × 100</code></p>
+                            <p><strong>Meta:</strong> ≥ 90% de cumplimiento mensual</p>
+                            <p><strong>Umbrales:</strong></p>
+                            <ul>
+                                <li>90-100%: Calidad Óptima (Verde)</li>
+                                <li>80-89%: Zona de Alerta (Amarillo)</li>
+                                <li>&lt;80%: Fuera de Control (Rojo)</li>
+                            </ul>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-danger">Indicador TEAEM (Resultado)</h6>
-                            <table class="table table-sm table-bordered">
-                                <tr>
-                                    <th width="30%" class="bg-light">S - Específico</th>
-                                    <td>Eventos adversos por incumplimiento de correctos</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">M - Medible</th>
-                                    <td>Tasa calculada con datos de farmacovigilancia</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">A - Alcanzable</th>
-                                    <td>Meta ≤2% alineada con estándares WHO</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">R - Relevante</th>
-                                    <td>Impacto en morbimortalidad y costos</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">T - Temporal</th>
-                                    <td>Evaluación mensual con análisis semestral</td>
-                                </tr>
-                            </table>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fichaTEAEM">
+                            <i class="fas fa-info-circle me-2"></i> Ficha Técnica TEAEM
+                        </button>
+                    </h2>
+                    <div id="fichaTEAEM" class="accordion-collapse collapse" data-bs-parent="#fichasTecnicas">
+                        <div class="accordion-body">
+                            <h5>Tasa de Eventos Adversos por Errores de Medicación</h5>
+                            <p><strong>Tipo:</strong> Indicador de Resultado - Negativo (menor es mejor)</p>
+                            <p><strong>Fórmula:</strong> <code>TEAEM (%) = (Eventos con Incumplimiento ≥1 Correcto / Total de Administraciones) × 100</code></p>
+                            <p><strong>Meta:</strong> ≤ 2% de eventos adversos</p>
+                            <p><strong>Umbrales:</strong></p>
+                            <ul>
+                                <li>0-2%: Excelencia (Verde)</li>
+                                <li>2.1-5%: Aceptable con Vigilancia (Amarillo)</li>
+                                <li>&gt;5%: Inaceptable (Rojo)</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Botón de regreso -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <a href="/" class="btn btn-primary btn-lg">
-                <i class="fas fa-home"></i> Volver al Inicio
-            </a>
-            <a href="/reports/dashboard" class="btn btn-success btn-lg">
-                <i class="fas fa-chart-bar"></i> Ver Dashboard
-            </a>
         </div>
     </div>
 </div>
 
 <style>
     .card {
-        margin-bottom: 20px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .list-group-item h6 {
+    .display-3 {
         font-weight: bold;
-        color: #333;
     }
-    .table th {
-        font-weight: 600;
-    }
-    code {
-        background-color: #f8f9fa;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 0.9em;
+    #correctosChart {
+        max-height: 400px;
     }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let tendenciaChart = null;
+let correctosChart = null;
+
+// Cargar indicadores al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    cargarIndicadores();
+});
+
+// Recargar al cambiar período
+document.getElementById('periodoSelect').addEventListener('change', () => {
+    cargarIndicadores();
+});
+
+async function cargarIndicadores() {
+    const dias = document.getElementById('periodoSelect').value;
+    
+    try {
+        // Cargar datos en paralelo
+        const [resumenData, tendenciaData] = await Promise.all([
+            fetch(`/api/indicadores/resumen?dias=${dias}`).then(r => r.json()),
+            fetch(`/api/indicadores/tendencia?semanas=4`).then(r => r.json())
+        ]);
+        
+        // Actualizar CLMC
+        actualizarCLMC(resumenData.clmc);
+        
+        // Actualizar TEAEM
+        actualizarTEAEM(resumenData.teaem);
+        
+        // Actualizar gráfico de tendencia
+        actualizarTendencia(tendenciaData);
+        
+        // Actualizar cumplimiento por correcto
+        actualizarCorrectos(resumenData.por_correcto);
+        
+    } catch (error) {
+        console.error('Error cargando indicadores:', error);
+        alert('Error al cargar los indicadores. Verifica que hay datos en la base de datos.');
+    }
+}
+
+function actualizarCLMC(data) {
+    document.getElementById('clmcValor').textContent = data.valor.toFixed(1) + '%';
+    document.getElementById('clmcNumerador').textContent = data.numerador;
+    document.getElementById('clmcDenominador').textContent = data.denominador;
+    
+    const nivel = document.getElementById('clmcNivel');
+    nivel.textContent = data.nivel;
+    nivel.className = `badge bg-${data.color}`;
+    
+    const progress = document.getElementById('clmcProgress');
+    progress.style.width = data.valor + '%';
+    progress.className = `progress-bar bg-${data.color}`;
+    progress.textContent = data.valor.toFixed(1) + '%';
+}
+
+function actualizarTEAEM(data) {
+    document.getElementById('teaemValor').textContent = data.valor.toFixed(1) + '%';
+    document.getElementById('teaemNumerador').textContent = data.numerador;
+    document.getElementById('teaemDenominador').textContent = data.denominador;
+    
+    const nivel = document.getElementById('teaemNivel');
+    nivel.textContent = data.nivel;
+    nivel.className = `badge bg-${data.color}`;
+    
+    const progress = document.getElementById('teaemProgress');
+    progress.style.width = data.valor + '%';
+    progress.className = `progress-bar bg-${data.color}`;
+    progress.textContent = data.valor.toFixed(1) + '%';
+}
+
+function actualizarTendencia(data) {
+    const ctx = document.getElementById('tendenciaChart').getContext('2d');
+    
+    if (tendenciaChart) {
+        tendenciaChart.destroy();
+    }
+    
+    tendenciaChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.semanas,
+            datasets: [
+                {
+                    label: 'CLMC (%)',
+                    data: data.clmc,
+                    borderColor: 'rgb(255, 193, 7)',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'TEAEM (%)',
+                    data: data.teaem,
+                    borderColor: 'rgb(220, 53, 69)',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Porcentaje (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function actualizarCorrectos(data) {
+    const ctx = document.getElementById('correctosChart').getContext('2d');
+    
+    if (correctosChart) {
+        correctosChart.destroy();
+    }
+    
+    const nombres = data.map(d => d.nombre);
+    const porcentajes = data.map(d => d.porcentaje);
+    const colores = porcentajes.map(p => {
+        if (p >= 90) return 'rgba(25, 135, 84, 0.8)';
+        if (p >= 80) return 'rgba(255, 193, 7, 0.8)';
+        return 'rgba(220, 53, 69, 0.8)';
+    });
+    
+    correctosChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: nombres,
+            datasets: [{
+                label: 'Cumplimiento (%)',
+                data: porcentajes,
+                backgroundColor: colores,
+                borderColor: colores.map(c => c.replace('0.8', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Porcentaje de Cumplimiento (%)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Actualizar tabla
+    const tbody = document.querySelector('#correctosTable tbody');
+    tbody.innerHTML = data.map(item => `
+        <tr>
+            <td><strong>${item.nombre}</strong></td>
+            <td>${item.cumplidos}</td>
+            <td>${item.total}</td>
+            <td>${item.porcentaje.toFixed(1)}%</td>
+            <td>
+                <span class="badge bg-${item.porcentaje >= 90 ? 'success' : item.porcentaje >= 80 ? 'warning' : 'danger'}">
+                    ${item.porcentaje >= 90 ? 'Óptimo' : item.porcentaje >= 80 ? 'Aceptable' : 'Requiere Atención'}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+}
+</script>
 {% endblock %}
