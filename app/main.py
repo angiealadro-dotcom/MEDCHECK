@@ -4,16 +4,23 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
-from app.db.database import create_tables, SessionLocal
+from app.db.database import create_tables, check_db_connection, SessionLocal
 from app.routers import auth_simple, checklist, reports
+from app.routers import notifications
+from app.routers import reminders
 from app.routers import alerts_sqlite as alerts
 from app.config import settings
+import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 # Crear la aplicación
 app = FastAPI(
     title=settings.app_name,
     description="Sistema de verificación de buenas prácticas en la administración de medicamentos",
-    version="1.0.3"  # Fix para producción
+    version="1.1.0",  # Versión mejorada
+    debug=settings.debug
 )
 
 # Exception handler para redirigir a login en caso de 401
@@ -31,9 +38,10 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 # Configuración de CORS
+allowed_origins = settings.cors_origins if isinstance(settings.cors_origins, list) else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,6 +58,8 @@ app.include_router(auth_simple.router)
 app.include_router(checklist.router, prefix="/checklist", tags=["checklist"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
+app.include_router(notifications.router)
+app.include_router(reminders.router)
 
 # Ruta principal
 @app.get("/", response_class=HTMLResponse)
@@ -70,8 +80,15 @@ async def login_page(request: Request):
 # Inicialización de la base de datos
 @app.on_event("startup")
 async def startup_event():
+    logger.info(f"🚀 Iniciando {settings.app_name} v1.1.0")
+    logger.info(f"🌍 Entorno: {settings.environment}")
+    logger.info(f"📊 Base de datos: {settings.database_url}")
+
     # Crear tablas
     create_tables()
+
+    # Verificar conexión a base de datos
+    check_db_connection()
 
     # Asegurar un usuario admin por defecto en un arranque limpio (si no hay usuarios)
     try:
@@ -91,19 +108,45 @@ async def startup_event():
             )
             db.add(admin)
             db.commit()
-            print("👑 Usuario admin creado automáticamente (admin / Admin123!)")
+            logger.info("👑 Usuario admin creado automáticamente (admin / Admin123!)")
         db.close()
     except Exception as e:
         # No bloquear el arranque por este paso; solo loguear
-        print(f"[startup][ensure_admin][warn] {e}")
+        logger.warning(f"[startup][ensure_admin] {e}")
 
-    print(f"✅ {settings.app_name} iniciado correctamente")
-    print(f"📊 Base de datos: {settings.database_url}")
-    print(f"🌍 Entorno: {settings.environment}")
+    # Iniciar scheduler de tareas
+    try:
+        from app.scheduler import setup_scheduler
+        setup_scheduler(app)
+        logger.info("⏱️  Scheduler iniciado")
+    except Exception as e:
+        logger.warning(f"[startup][scheduler] {e}")
+
+    logger.info(f"✅ {settings.app_name} iniciado correctamente")
+    logger.info(f"� Documentación API: http://{settings.host}:{settings.port}/docs")
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "app": settings.app_name}
+    """
+    Health check endpoint con información detallada del sistema
+    """
+    health_status = {
+        "status": "healthy",
+        "app": settings.app_name,
+        "version": "1.1.0",
+        "environment": settings.environment,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+    # Verificar conexión a la base de datos
+    try:
+        db_healthy = check_db_connection()
+        health_status["database"] = "connected" if db_healthy else "disconnected"
+    except Exception as e:
+        health_status["database"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+
+    return health_status
 
 # Endpoint temporal para crear usuario admin (elimina el existente si hay problemas)
 @app.get("/setup-admin")
@@ -111,13 +154,13 @@ async def setup_admin(request: Request, force: bool = False, format: str = "json
     from app.db.database import SessionLocal
     from app.models.user import User
     from app.auth.users import get_password_hash
-    
+
     db = SessionLocal()
-    
+
     try:
         # Verificar si ya existe un admin
         existing_admin = db.query(User).filter(User.username == "admin").first()
-        
+
         if existing_admin and not force:
             payload = {
                 "status": "already_exists",
@@ -135,12 +178,12 @@ async def setup_admin(request: Request, force: bool = False, format: str = "json
                     </body></html>
                 """)
             return payload
-        
+
         # Si force=true, eliminar el admin existente
         if existing_admin:
             db.delete(existing_admin)
             db.commit()
-        
+
         # Crear nuevo usuario admin usando un hash precomputado para evitar
         # cualquier problema del backend bcrypt en tiempo de ejecución
         # Contraseña en texto plano: Admin123!
@@ -153,11 +196,11 @@ async def setup_admin(request: Request, force: bool = False, format: str = "json
             is_active=True,
             is_admin=True
         )
-        
+
         db.add(admin)
         db.commit()
         db.refresh(admin)
-        
+
         payload = {
             "status": "success",
             "message": "Usuario administrador creado exitosamente con el fix de bcrypt",
@@ -176,7 +219,7 @@ async def setup_admin(request: Request, force: bool = False, format: str = "json
                 </body></html>
             """)
         return payload
-        
+
     except Exception as e:
         db.rollback()
         diag = {

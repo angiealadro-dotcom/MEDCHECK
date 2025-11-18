@@ -62,7 +62,7 @@
 <div class="row mb-4">
     <div class="col-md-9">
         <h2>Dashboard de Reportes</h2>
-        
+
         <!-- Filtros -->
         <div class="card mb-4">
             <div class="card-body">
@@ -90,8 +90,24 @@
                         <button type="submit" class="btn btn-primary">Actualizar</button>
                         <div class="btn-group">
                             <button type="button" id="exportPdf" class="btn btn-outline-secondary">Exportar PDF</button>
+                            <button type="button" id="testPush" class="btn btn-outline-success" title="Enviar notificación de prueba">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <button type="button" id="testLocalNotif" class="btn btn-outline-info" title="Mostrar notificación local (sin push)">
+                                <i class="fas fa-bell-slash"></i>
+                            </button>
                         </div>
                     </div>
+                    <div class="col-12 mt-2 d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm" style="max-width: 260px;">
+                            <span class="input-group-text">Recordatorio en</span>
+                            <input type="number" id="quickMinutes" class="form-control" min="1" value="1" style="max-width: 80px;"/>
+                            <span class="input-group-text">min</span>
+                        </div>
+                        <button type="button" id="scheduleQuick" class="btn btn-sm btn-outline-primary" title="Programar recordatorio rápido">
+                            <i class="fas fa-hourglass-start"></i> Programar
+                        </button>
+                        </div>
                 </form>
             </div>
         </div>
@@ -156,8 +172,8 @@
                                         </h3>
                                         <p class="mb-0">{{ datos.cumplidos }} de {{ datos.total }} items</p>
                                         <div class="progress mt-2">
-                                            <div class="progress-bar {% if datos.porcentaje >= 90 %}bg-success{% elif datos.porcentaje >= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                 role="progressbar" 
+                                            <div class="progress-bar {% if datos.porcentaje >= 90 %}bg-success{% elif datos.porcentaje >= 70 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                 role="progressbar"
                                                  style="width: {{ datos.porcentaje }}%">
                                             </div>
                                         </div>
@@ -245,7 +261,7 @@
         </div>
         {% endif %}
     </div><!-- fin col-md-9 -->
-    
+
     <!-- Panel de Recomendaciones -->
     <div class="col-md-3">
         <div class="recommendations-panel">
@@ -271,17 +287,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const cumplimientoCtx = document.getElementById('cumplimientoChart');
     const areasPieCtx = document.getElementById('areasPieChart');
-    
+
     // Datos del servidor
     const summary = {{ summary|tojson if summary else '{}' }};
     const cumplimientoPorEtapa = summary.cumplimiento_por_etapa || {};
-    
+
     // Gráfico de cumplimiento por etapa
     const etapas = ['prescripción', 'preparación', 'administración'];
-    const cumplimientoData = etapas.map(etapa => 
+    const cumplimientoData = etapas.map(etapa =>
         cumplimientoPorEtapa[etapa] ? cumplimientoPorEtapa[etapa].porcentaje : 0
     );
-    
+
     new Chart(cumplimientoCtx, {
         type: 'bar',
         data: {
@@ -322,11 +338,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
+
     // Gráfico de pie (general vs no cumplido)
     const cumplidos = summary.items_cumplidos || 0;
     const noCumplidos = (summary.total_items || 0) - cumplidos;
-    
+
     new Chart(areasPieCtx, {
         type: 'doughnut',
         data: {
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
+
     // Manejar envío del formulario de filtros
     const filterForm = document.getElementById('filterForm');
     if (filterForm) {
@@ -391,24 +407,114 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Botón de prueba de notificación push
+    const testPushBtn = document.getElementById('testPush');
+    if (testPushBtn) {
+        testPushBtn.addEventListener('click', async () => {
+            try {
+                // Asegurar que el usuario esté suscrito antes de probar
+                if (typeof registerPushIfAllowed === 'function') {
+                    await registerPushIfAllowed(true); // pedir permiso si hace falta
+                }
+
+                const resp = await fetch('/notifications/test', { method: 'POST', credentials: 'same-origin' });
+                if (!resp.ok) {
+                    const j = await resp.json().catch(() => ({}));
+                    alert('No se pudo enviar: ' + (j.detail || resp.statusText));
+                    return;
+                }
+                const j = await resp.json();
+                alert(`Notificación enviada. Enviadas: ${j.sent}, errores: ${j.errors?.length || 0}`);
+            } catch (e) {
+                alert('Error al enviar notificación: ' + e.message);
+            }
+        });
+    }
+
+    // Botón para probar notificación local (usa showNotification directamente)
+    const testLocalBtn = document.getElementById('testLocalNotif');
+    if (testLocalBtn) {
+        testLocalBtn.addEventListener('click', async () => {
+            try {
+                if (!('Notification' in window)) { alert('Este navegador no soporta notificaciones'); return; }
+                if (Notification.permission !== 'granted') {
+                    const p = await Notification.requestPermission();
+                    if (p !== 'granted') { alert('Permite las notificaciones para probar'); return; }
+                }
+                // La scope del SW es /static/, así que pídele específicamente ese registro
+                let reg = await navigator.serviceWorker.getRegistration(); // registro del alcance actual
+                if (!reg) {
+                    // Fallback: intentar por ruta específica o esperar a que esté listo
+                    reg = await navigator.serviceWorker.getRegistration('/static/').catch(() => null) ||
+                          await navigator.serviceWorker.ready.catch(() => null);
+                }
+                if (!reg) {
+                    // Último intento de registro
+                    reg = await navigator.serviceWorker.register('/static/sw.js').catch(() => null);
+                }
+                if (!reg) { alert('Service Worker no registrado'); return; }
+                await reg.showNotification('MedCheck (local)', {
+                    body: 'Prueba local de notificación (sin push) — si ves esto, el sistema de notificaciones del SO está activo.',
+                    icon: '/static/img/logo-192.png',
+                    badge: '/static/img/logo-192.png',
+                    requireInteraction: true,
+                    data: { url: '/reports/dashboard' },
+                    vibrate: [120, 60, 120]
+                });
+                alert('Notificación enviada al sistema. Si no ves el aviso, revisa permisos del sitio y el Centro de notificaciones de Windows.');
+            } catch (e) {
+                alert('No se pudo mostrar la notificación local: ' + e.message);
+            }
+        });
+    }
+
+    // Programar recordatorio rápido
+    const scheduleBtn = document.getElementById('scheduleQuick');
+    if (scheduleBtn) {
+        scheduleBtn.addEventListener('click', async () => {
+            try {
+                const minutes = parseInt(document.getElementById('quickMinutes')?.value || '1', 10) || 1;
+                // Asegurar permiso y suscripción
+                if (typeof registerPushIfAllowed === 'function') {
+                    await registerPushIfAllowed(true);
+                }
+                const res = await fetch('/reminders/quick', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ minutes, title: 'MedCheck', body: '⏰ Recordatorio programado' })
+                });
+                if (!res.ok) {
+                    const j = await res.json().catch(() => ({}));
+                    alert('No se pudo programar: ' + (j.detail || res.statusText));
+                    return;
+                }
+                const j = await res.json();
+                alert('Recordatorio programado para: ' + (j.scheduled_at || 'pronto'));
+            } catch (e) {
+                alert('Error al programar: ' + e.message);
+            }
+        });
+    }
+
     // ===== CARGAR RECOMENDACIONES Y ACTIVAR VOZ =====
     async function loadRecommendations() {
         const filterForm = document.getElementById('filterForm');
         if (!filterForm) return;
-        
+
         const formData = new FormData(filterForm);
         const periodo = formData.get('periodo') || '7d';
         const area = formData.get('area') || '';
-        
+
         const container = document.getElementById('recommendationsContainer');
-        
+
         try {
             const res = await fetch(`/reports/recommendations?periodo=${periodo}&area=${area}`);
             if (!res.ok) throw new Error('Error al cargar recomendaciones');
-            
+
             const data = await res.json();
             renderRecommendations(data.recomendaciones || []);
-            
+
             // Añadir aviso si la voz no está habilitada
             checkVoiceAvailabilityForPanel();
         } catch (error) {
@@ -448,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderRecommendations(recommendations) {
         const container = document.getElementById('recommendationsContainer');
-        
+
         if (recommendations.length === 0) {
             container.innerHTML = `
                 <div class="alert alert-success p-3">
@@ -459,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             return;
         }
-        
+
         container.innerHTML = recommendations.map(rec => `
             <div class="card recommendation-card ${rec.tipo} p-3 mb-2">
                 <div class="d-flex align-items-start">
@@ -495,47 +601,76 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const filterForm = document.getElementById('filterForm');
             if (!filterForm) return;
-            
+
             const formData = new FormData(filterForm);
             const periodo = formData.get('periodo') || '7d';
             const area = formData.get('area') || '';
-            
+
             const icon = voiceBtn.querySelector('i');
             const originalClass = icon.className;
-            
+
             try {
                 icon.className = 'fas fa-spinner fa-spin';
                 voiceBtn.disabled = true;
-                
+
                 const audio = new Audio(`/reports/voice-summary?periodo=${periodo}&area=${area}`);
-                
+
                 audio.onloadstart = () => {
                     icon.className = 'fas fa-volume-up';
                     voiceBtn.classList.add('playing');
                 };
-                
+
                 audio.onended = () => {
                     icon.className = originalClass;
                     voiceBtn.classList.remove('playing');
                     voiceBtn.disabled = false;
                 };
-                
+
                 audio.onerror = () => {
                     throw new Error('Error al reproducir audio');
                 };
-                
+
                 await audio.play();
-                
+
             } catch (error) {
                 console.error('Voice error:', error);
                 icon.className = originalClass;
                 voiceBtn.classList.remove('playing');
                 voiceBtn.disabled = false;
-                
+
                 alert('⚠️ Servicio de voz no disponible.\n\nAsegúrate de que ELEVENLABS_API_KEY esté configurado en Render > Environment y que tu clave tenga el permiso "text_to_speech".');
             }
         });
     }
+
+    // Mostrar banner para habilitar notificaciones si hace falta
+    try {
+        const container = document.querySelector('.card .card-body') || document.body;
+        if ('Notification' in window && Notification.permission !== 'granted') {
+            const banner = document.createElement('div');
+            banner.className = 'alert alert-info d-flex justify-content-between align-items-center';
+            banner.style.marginTop = '10px';
+            banner.innerHTML = `
+                <div>
+                    <strong>Notificaciones desactivadas</strong>
+                    <div><small>Permite notificaciones para recibir recordatorios.</small></div>
+                </div>
+                <button id="enableNotifsBtn" class="btn btn-sm btn-primary">Activar</button>
+            `;
+            container.prepend(banner);
+            const btn = banner.querySelector('#enableNotifsBtn');
+            btn.addEventListener('click', async () => {
+                const res = await Notification.requestPermission();
+                if (res === 'granted' && typeof registerPushIfAllowed === 'function') {
+                    await registerPushIfAllowed(true);
+                    banner.remove();
+                    alert('Listo: Notificaciones activadas. Puedes probar con la campana verde o la campana tachada.');
+                } else if (res === 'denied') {
+                    alert('El navegador bloqueó las notificaciones. Cambia el permiso del sitio a "Permitir".');
+                }
+            });
+        }
+    } catch (e) { /* noop */ }
 
     // Cargar recomendaciones al inicio
     loadRecommendations();

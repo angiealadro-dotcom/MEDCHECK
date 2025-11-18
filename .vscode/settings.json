@@ -1,0 +1,48 @@
+{
+  // Reduce background work in VS Code for this workspace
+  "search.exclude": {
+    "**/venv": true,
+    "**/.git": true,
+    "**/__pycache__": true,
+    "**/.mypy_cache": true,
+    "**/.pytest_cache": true,
+    "**/.ipynb_checkpoints": true,
+    "static/**": true
+  },
+  "files.watcherExclude": {
+    "**/venv/**": true,
+    "**/.git/**": true,
+    "**/__pycache__/**": true,
+    "**/.pytest_cache/**": true,
+    "**/*.db": true,
+    "**/*.sqlite": true,
+    "static/**": true
+  },
+
+  // Lighten Pylance work
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.indexing": false,
+
+  // Testing/linters disabled by default here
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": false,
+
+  // Editor housekeeping
+  "editor.formatOnSave": false,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // Limit terminal scrollback to reduce memory usage
+  "terminal.integrated.scrollback": 500
+  ,
+  // Extra performance tips
+  "git.decorations.enabled": false,
+  "git.autorefresh": false,
+  "workbench.list.smoothScrolling": false,
+  "editor.semanticHighlighting.enabled": false,
+  "editor.codeLens": false,
+  // Jinja templates can confuse JS/TS analyzers; keep validation light
+  "javascript.validate.enable": false,
+  "typescript.validate.enable": false
+}

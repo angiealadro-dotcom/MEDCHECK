@@ -69,3 +69,43 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
+// Manejar mensajes push y clicks en notificaciones
+self.addEventListener('push', event => {
+  let data = {};
+  try {
+    if (event.data) data = event.data.json();
+  } catch (e) {
+    try { data = { body: event.data.text() }; } catch (_) {}
+  }
+  const title = data.title || 'MedCheck';
+  const body = data.body || 'Tienes un recordatorio';
+  const url = data.url || '/';
+  const options = {
+    body,
+    icon: '/static/img/logo-192.png',
+    badge: '/static/img/logo-192.png',
+    data: { url },
+    requireInteraction: true,
+    vibrate: [120, 60, 120]
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = (event.notification && event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (const client of windowClients) {
+        if ('focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});

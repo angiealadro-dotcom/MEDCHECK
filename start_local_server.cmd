@@ -9,7 +9,7 @@ REM - Starts Uvicorn with autoreload on port 8001
 REM Detect workspace root (this script's directory)
 cd /d "%~dp0"
 
-if not exist venv ( 
+if not exist venv (
   echo [ERROR] No se encontró la carpeta venv. Crea el entorno virtual primero.
   echo        python -m venv venv
   echo        .\venv\Scripts\activate && pip install -r requirements.txt
@@ -19,11 +19,12 @@ if not exist venv (
 
 call .\venv\Scripts\activate
 set PYTHONPATH=.
-set APP_PORT=8001
+set APP_PORT=8002
 
 REM Opcional: abre el navegador automáticamente
-start "" http://localhost:%APP_PORT%/
+start "" http://127.0.0.1:%APP_PORT%/
 
-uvicorn app.main:app --reload --port %APP_PORT% --log-level debug
+REM Limitar observadores del autoreload (sin exclusiones para evitar problemas de comodines en Windows)
+uvicorn app.main:app --reload --reload-dir app --reload-dir templates --port %APP_PORT% --log-level warning
 
 endlocal

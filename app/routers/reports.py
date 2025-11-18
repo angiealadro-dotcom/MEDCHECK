@@ -361,62 +361,62 @@ async def export_report_to_pdf(
     desde: Optional[datetime] = None,
     hasta: Optional[datetime] = None
 ):
-        """
-        Exportar reporte de cumplimiento a PDF
-        """
-        # Obtener datos del resumen
-        query = db.query(ChecklistEntrySQL)
+    """
+    Exportar reporte de cumplimiento a PDF
+    """
+    # Obtener datos del resumen
+    query = db.query(ChecklistEntrySQL)
+
+    if area:
+        query = query.filter(ChecklistEntrySQL.area == area)
+    if desde:
+        query = query.filter(ChecklistEntrySQL.fecha_hora >= desde)
+    if hasta:
+        query = query.filter(ChecklistEntrySQL.fecha_hora <= hasta)
+
+    entries = query.all()
+    total = len(entries)
+    cumple_count = sum(1 for e in entries if e.cumple)
+
+    # Calcular por área
+    por_area = {}
+    for entry in entries:
+        if entry.area not in por_area:
+            por_area[entry.area] = {"total": 0, "cumple": 0}
+        por_area[entry.area]["total"] += 1
+        if entry.cumple:
+            por_area[entry.area]["cumple"] += 1
+
+    for area_key in por_area:
+        por_area[area_key]["porcentaje"] = (
+            por_area[area_key]["cumple"] / por_area[area_key]["total"] * 100
+        ) if por_area[area_key]["total"] > 0 else 0
+
+    summary = {
+        "total_registros": total,
+        "total_cumple": cumple_count,
+        "porcentaje_cumplimiento": (cumple_count / total * 100) if total > 0 else 0,
+        "por_area": por_area
+    }
+
+    # Generar PDF
+    try:
+        pdf_bytes = export_service.export_report_to_pdf(summary)
     
-        if area:
-            query = query.filter(ChecklistEntrySQL.area == area)
-        if desde:
-            query = query.filter(ChecklistEntrySQL.fecha_hora >= desde)
-        if hasta:
-            query = query.filter(ChecklistEntrySQL.fecha_hora <= hasta)
+        # Crear nombre de archivo con timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"medcheck_reporte_{timestamp}.pdf"
     
-        entries = query.all()
-        total = len(entries)
-        cumple_count = sum(1 for e in entries if e.cumple)
-    
-        # Calcular por área
-        por_area = {}
-        for entry in entries:
-            if entry.area not in por_area:
-                por_area[entry.area] = {"total": 0, "cumple": 0}
-            por_area[entry.area]["total"] += 1
-            if entry.cumple:
-                por_area[entry.area]["cumple"] += 1
-    
-        for area_key in por_area:
-            por_area[area_key]["porcentaje"] = (
-                por_area[area_key]["cumple"] / por_area[area_key]["total"] * 100
-            ) if por_area[area_key]["total"] > 0 else 0
-    
-        summary = {
-            "total_registros": total,
-            "total_cumple": cumple_count,
-            "porcentaje_cumplimiento": (cumple_count / total * 100) if total > 0 else 0,
-            "por_area": por_area
-        }
-    
-        # Generar PDF
-        try:
-            pdf_bytes = export_service.export_report_to_pdf(summary)
-        
-            # Crear nombre de archivo con timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"medcheck_reporte_{timestamp}.pdf"
-        
-            return StreamingResponse(
-                io.BytesIO(pdf_bytes),
-                media_type="application/pdf",
-                headers={"Content-Disposition": f"attachment; filename={filename}"}
-            )
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error al generar PDF: {str(e)}"
-            )
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al generar PDF: {str(e)}"
+        )
 
 @router.get("/recommendations")
 async def get_recommendations(

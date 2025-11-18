@@ -77,4 +77,70 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Intentar registrar SW y suscripción SIN pedir permiso automático
+    try {
+        registerPushIfAllowed(false);
+    } catch (e) {
+        console.warn('Push setup skipped:', e);
+    }
 });
+
+// Utilidad para convertir base64 url a Uint8Array
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function registerPushIfAllowed(promptUser = false) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    // Solo pedir permiso si viene desde una acción del usuario
+    if (Notification.permission !== 'granted') {
+        if (promptUser) {
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') return;
+        } else {
+            // Aún sin permiso: no forzar prompt silencioso
+            return;
+        }
+    }
+
+    const reg = await navigator.serviceWorker.register('/static/sw.js');
+    const existing = await reg.pushManager.getSubscription();
+
+    // Obtener clave pública del servidor
+    const resp = await fetch('/notifications/public-key', { credentials: 'same-origin' });
+    if (!resp.ok) return;
+    const { publicKey } = await resp.json();
+
+    let subscription = existing;
+    if (!subscription) {
+        subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
+        });
+    }
+
+    // Enviar suscripción (nueva o existente) al backend para guardarla
+    const payload = subscription && subscription.toJSON ? subscription.toJSON() : subscription;
+    try {
+        const resp = await fetch('/notifications/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+            console.warn('No se pudo guardar la suscripción (posible no autenticado).');
+        }
+    } catch (e) {
+        console.warn('Fallo al enviar suscripción:', e);
+    }
+}
