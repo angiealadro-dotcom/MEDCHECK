@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block title %}Indicadores de Calidad - MedCheck{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-primary">
+                <i class="fas fa-chart-line"></i> Indicadores de Calidad en Tiempo Real
+            </h1>
+            <p class="lead">Análisis en tiempo real basado en datos de MedCheck</p>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Selector de Período -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label class="form-label"><i class="fas fa-calendar"></i> Período de Análisis</label>
+            <select class="form-select" id="periodoSelect">
+                <option value="7">Últimos 7 días</option>
+                <option value="30" selected>Últimos 30 días</option>
+                <option value="90">Últimos 90 días</option>
+            </select>
+        </div>
+        <div class="col-md-8 d-flex align-items-end">
+            <button class="btn btn-primary" onclick="cargarIndicadores()">
+                <i class="fas fa-sync"></i> Actualizar Datos
+            </button>
+        </div>
+    </div>
+
+    <!-- Indicadores Principales (Cards) -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-warning" id="clmcCard">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-tasks"></i> CLMC - Cumplimiento de Lista de Cotejo</h5>
+                    <small>Indicador de Proceso</small>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="display-3 mb-0" id="clmcValor">
+                                <span class="spinner-border" role="status"></span>
+                            </h1>
+                            <p class="text-muted mb-0">Meta: ≥ 90%</p>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0"><span id="clmcNumerador">-</span> / <span id="clmcDenominador">-</span></p>
+                            <span class="badge" id="clmcNivel">Cargando...</span>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar" id="clmcProgress" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-danger" id="teaemCard">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-heartbeat"></i> TEAEM - Tasa de Eventos Adversos</h5>
+                    <small>Indicador de Resultado</small>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="display-3 mb-0" id="teaemValor">
+                                <span class="spinner-border" role="status"></span>
+                            </h1>
+                            <p class="text-muted mb-0">Meta: ≤ 2%</p>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0"><span id="teaemNumerador">-</span> / <span id="teaemDenominador">-</span></p>
+                            <span class="badge" id="teaemNivel">Cargando...</span>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar" id="teaemProgress" role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Tendencia -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-area"></i> Tendencia de Indicadores (Últimas 4 Semanas)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="tendenciaChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cumplimiento por Correcto -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-pills"></i> Cumplimiento de Los 10 Correctos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="correctosChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Detallada de Correctos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-table"></i> Detalle de Cumplimiento por Correcto</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="correctosTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Correcto</th>
+                                    <th>Cumplidos</th>
+                                    <th>Total</th>
+                                    <th>Porcentaje</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fichas Técnicas (Colapsables) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="accordion" id="fichasTecnicas">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fichaCLMC">
+                            <i class="fas fa-info-circle me-2"></i> Ficha Técnica CLMC
+                        </button>
+                    </h2>
+                    <div id="fichaCLMC" class="accordion-collapse collapse" data-bs-parent="#fichasTecnicas">
+                        <div class="accordion-body">
+                            <h5>Cumplimiento del Uso de la Lista de Cotejo Digital "MedCheck"</h5>
+                            <p><strong>Tipo:</strong> Indicador de Proceso - Positivo</p>
+                            <p><strong>Fórmula:</strong> <code>CLMC (%) = (Formatos MedCheck Completos / Total de Administraciones) × 100</code></p>
+                            <p><strong>Meta:</strong> ≥ 90% de cumplimiento mensual</p>
+                            <p><strong>Umbrales:</strong></p>
+                            <ul>
+                                <li>90-100%: Calidad Óptima (Verde)</li>
+                                <li>80-89%: Zona de Alerta (Amarillo)</li>
+                                <li>&lt;80%: Fuera de Control (Rojo)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fichaTEAEM">
+                            <i class="fas fa-info-circle me-2"></i> Ficha Técnica TEAEM
+                        </button>
+                    </h2>
+                    <div id="fichaTEAEM" class="accordion-collapse collapse" data-bs-parent="#fichasTecnicas">
+                        <div class="accordion-body">
+                            <h5>Tasa de Eventos Adversos por Errores de Medicación</h5>
+                            <p><strong>Tipo:</strong> Indicador de Resultado - Negativo (menor es mejor)</p>
+                            <p><strong>Fórmula:</strong> <code>TEAEM (%) = (Eventos con Incumplimiento ≥1 Correcto / Total de Administraciones) × 100</code></p>
+                            <p><strong>Meta:</strong> ≤ 2% de eventos adversos</p>
+                            <p><strong>Umbrales:</strong></p>
+                            <ul>
+                                <li>0-2%: Excelencia (Verde)</li>
+                                <li>2.1-5%: Aceptable con Vigilancia (Amarillo)</li>
+                                <li>&gt;5%: Inaceptable (Rojo)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .display-3 {
+        font-weight: bold;
+    }
+    #correctosChart {
+        max-height: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let tendenciaChart = null;
+let correctosChart = null;
+
+// Cargar indicadores al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    cargarIndicadores();
+});
+
+// Recargar al cambiar período
+document.getElementById('periodoSelect').addEventListener('change', () => {
+    cargarIndicadores();
+});
+
+async function cargarIndicadores() {
+    const dias = document.getElementById('periodoSelect').value;
+    
+    try {
+        // Cargar datos en paralelo
+        const [resumenData, tendenciaData] = await Promise.all([
+            fetch(`/api/indicadores/resumen?dias=${dias}`).then(r => r.json()),
+            fetch(`/api/indicadores/tendencia?semanas=4`).then(r => r.json())
+        ]);
+        
+        // Actualizar CLMC
+        actualizarCLMC(resumenData.clmc);
+        
+        // Actualizar TEAEM
+        actualizarTEAEM(resumenData.teaem);
+        
+        // Actualizar gráfico de tendencia
+        actualizarTendencia(tendenciaData);
+        
+        // Actualizar cumplimiento por correcto
+        actualizarCorrectos(resumenData.por_correcto);
+        
+    } catch (error) {
+        console.error('Error cargando indicadores:', error);
+        alert('Error al cargar los indicadores. Verifica que hay datos en la base de datos.');
+    }
+}
+
+function actualizarCLMC(data) {
+    document.getElementById('clmcValor').textContent = data.valor.toFixed(1) + '%';
+    document.getElementById('clmcNumerador').textContent = data.numerador;
+    document.getElementById('clmcDenominador').textContent = data.denominador;
+    
+    const nivel = document.getElementById('clmcNivel');
+    nivel.textContent = data.nivel;
+    nivel.className = `badge bg-${data.color}`;
+    
+    const progress = document.getElementById('clmcProgress');
+    progress.style.width = data.valor + '%';
+    progress.className = `progress-bar bg-${data.color}`;
+    progress.textContent = data.valor.toFixed(1) + '%';
+}
+
+function actualizarTEAEM(data) {
+    document.getElementById('teaemValor').textContent = data.valor.toFixed(1) + '%';
+    document.getElementById('teaemNumerador').textContent = data.numerador;
+    document.getElementById('teaemDenominador').textContent = data.denominador;
+    
+    const nivel = document.getElementById('teaemNivel');
+    nivel.textContent = data.nivel;
+    nivel.className = `badge bg-${data.color}`;
+    
+    const progress = document.getElementById('teaemProgress');
+    progress.style.width = data.valor + '%';
+    progress.className = `progress-bar bg-${data.color}`;
+    progress.textContent = data.valor.toFixed(1) + '%';
+}
+
+function actualizarTendencia(data) {
+    const ctx = document.getElementById('tendenciaChart').getContext('2d');
+    
+    if (tendenciaChart) {
+        tendenciaChart.destroy();
+    }
+    
+    tendenciaChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.semanas,
+            datasets: [
+                {
+                    label: 'CLMC (%)',
+                    data: data.clmc,
+                    borderColor: 'rgb(255, 193, 7)',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'TEAEM (%)',
+                    data: data.teaem,
+                    borderColor: 'rgb(220, 53, 69)',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Porcentaje (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function actualizarCorrectos(data) {
+    const ctx = document.getElementById('correctosChart').getContext('2d');
+    
+    if (correctosChart) {
+        correctosChart.destroy();
+    }
+    
+    const nombres = data.map(d => d.nombre);
+    const porcentajes = data.map(d => d.porcentaje);
+    const colores = porcentajes.map(p => {
+        if (p >= 90) return 'rgba(25, 135, 84, 0.8)';
+        if (p >= 80) return 'rgba(255, 193, 7, 0.8)';
+        return 'rgba(220, 53, 69, 0.8)';
+    });
+    
+    correctosChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: nombres,
+            datasets: [{
+                label: 'Cumplimiento (%)',
+                data: porcentajes,
+                backgroundColor: colores,
+                borderColor: colores.map(c => c.replace('0.8', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Porcentaje de Cumplimiento (%)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Actualizar tabla
+    const tbody = document.querySelector('#correctosTable tbody');
+    tbody.innerHTML = data.map(item => `
+        <tr>
+            <td><strong>${item.nombre}</strong></td>
+            <td>${item.cumplidos}</td>
+            <td>${item.total}</td>
+            <td>${item.porcentaje.toFixed(1)}%</td>
+            <td>
+                <span class="badge bg-${item.porcentaje >= 90 ? 'success' : item.porcentaje >= 80 ? 'warning' : 'danger'}">
+                    ${item.porcentaje >= 90 ? 'Óptimo' : item.porcentaje >= 80 ? 'Aceptable' : 'Requiere Atención'}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+}
+</script>
+{% endblock %}
