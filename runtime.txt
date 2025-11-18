@@ -1,0 +1,2 @@
+# Runtime configuration for Cloudflare Pages
+python_version = "3.11"

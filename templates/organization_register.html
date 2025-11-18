@@ -119,7 +119,7 @@
                             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                                 <i class="fas fa-check-circle me-2"></i>Crear Cuenta
                             </button>
-                            <a href="/auth/login" class="btn btn-outline-secondary">
+                            <a href="/login" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Ya tengo cuenta
                             </a>
                         </div>
@@ -198,7 +198,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
             `;
             
             setTimeout(() => {
-                window.location.href = '/auth/login';
+                window.location.href = '/login';
             }, 2000);
         } else {
             alertContainer.innerHTML = `
