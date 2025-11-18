@@ -150,50 +150,170 @@
         </div>
     </div>
 
-    <!-- Fichas Técnicas (Colapsables) -->
+    <!-- Fichas Técnicas Flotantes (Interactivas) -->
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="accordion" id="fichasTecnicas">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fichaCLMC">
-                            <i class="fas fa-info-circle me-2"></i> Ficha Técnica CLMC
-                        </button>
-                    </h2>
-                    <div id="fichaCLMC" class="accordion-collapse collapse" data-bs-parent="#fichasTecnicas">
-                        <div class="accordion-body">
-                            <h5>Cumplimiento del Uso de la Lista de Cotejo Digital "MedCheck"</h5>
-                            <p><strong>Tipo:</strong> Indicador de Proceso - Positivo</p>
-                            <p><strong>Fórmula:</strong> <code>CLMC (%) = (Formatos MedCheck Completos / Total de Administraciones) × 100</code></p>
-                            <p><strong>Meta:</strong> ≥ 90% de cumplimiento mensual</p>
-                            <p><strong>Umbrales:</strong></p>
-                            <ul>
-                                <li>90-100%: Calidad Óptima (Verde)</li>
-                                <li>80-89%: Zona de Alerta (Amarillo)</li>
-                                <li>&lt;80%: Fuera de Control (Rojo)</li>
-                            </ul>
+        <!-- Ficha CLMC -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-warning ficha-tecnica">
+                <div class="card-header bg-warning bg-gradient text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i> 
+                        Ficha Técnica CLMC
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Cumplimiento del Uso de la Lista de Cotejo Digital "MedCheck"</h6>
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <strong><i class="fas fa-tag"></i> Tipo:</strong> 
+                        <span class="badge bg-info">Indicador de Proceso - Positivo</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong><i class="fas fa-function"></i> Fórmula:</strong>
+                        <div class="formula-box p-2 bg-light rounded mt-2">
+                            <code class="text-danger">CLMC (%) = (Formatos MedCheck Completos / Total de Administraciones) × 100</code>
+                        </div>
+                        <div class="mt-2 p-2 bg-primary bg-opacity-10 rounded">
+                            <strong>Cálculo Actual:</strong>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span>
+                                    CLMC = (<span id="clmc_numerador_ficha">0</span> / <span id="clmc_denominador_ficha">0</span>) × 100
+                                </span>
+                                <span class="badge bg-primary" id="clmc_resultado_ficha">0%</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fichaTEAEM">
-                            <i class="fas fa-info-circle me-2"></i> Ficha Técnica TEAEM
-                        </button>
-                    </h2>
-                    <div id="fichaTEAEM" class="accordion-collapse collapse" data-bs-parent="#fichasTecnicas">
-                        <div class="accordion-body">
-                            <h5>Tasa de Eventos Adversos por Errores de Medicación</h5>
-                            <p><strong>Tipo:</strong> Indicador de Resultado - Negativo (menor es mejor)</p>
-                            <p><strong>Fórmula:</strong> <code>TEAEM (%) = (Eventos con Incumplimiento ≥1 Correcto / Total de Administraciones) × 100</code></p>
-                            <p><strong>Meta:</strong> ≤ 2% de eventos adversos</p>
-                            <p><strong>Umbrales:</strong></p>
-                            <ul>
-                                <li>0-2%: Excelencia (Verde)</li>
-                                <li>2.1-5%: Aceptable con Vigilancia (Amarillo)</li>
-                                <li>&gt;5%: Inaceptable (Rojo)</li>
-                            </ul>
+                    
+                    <div class="mb-3">
+                        <strong><i class="fas fa-bullseye"></i> Meta:</strong> 
+                        <span class="text-success">≥ 90%</span> de cumplimiento mensual
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong><i class="fas fa-chart-bar"></i> Umbrales de Control:</strong>
+                    </div>
+                    <div class="umbrales-container">
+                        <div class="umbral-item" id="clmc_umbral_optimo">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle text-success"></i> 90-100%: Calidad Óptima</span>
+                                <span class="badge bg-success umbral-badge">Verde</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                            </div>
                         </div>
+                        <div class="umbral-item" id="clmc_umbral_alerta">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle text-warning"></i> 80-89%: Zona de Alerta</span>
+                                <span class="badge bg-warning umbral-badge">Amarillo</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-warning" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="umbral-item" id="clmc_umbral_critico">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle text-danger"></i> &lt;80%: Fuera de Control</span>
+                                <span class="badge bg-danger umbral-badge">Rojo</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-danger" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 p-2 border-start border-4 border-warning bg-light">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Interpretación:</strong> Este indicador mide qué porcentaje de administraciones 
+                            de medicamentos tienen TODOS los 10 correctos completados correctamente.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ficha TEAEM -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-danger ficha-tecnica">
+                <div class="card-header bg-danger bg-gradient text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i> 
+                        Ficha Técnica TEAEM
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Tasa de Eventos Adversos por Errores de Medicación</h6>
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <strong><i class="fas fa-tag"></i> Tipo:</strong> 
+                        <span class="badge bg-danger">Indicador de Resultado - Negativo</span>
+                        <small class="text-muted">(menor es mejor)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong><i class="fas fa-function"></i> Fórmula:</strong>
+                        <div class="formula-box p-2 bg-light rounded mt-2">
+                            <code class="text-danger">TEAEM (%) = (Eventos con Incumplimiento ≥1 Correcto / Total de Administraciones) × 100</code>
+                        </div>
+                        <div class="mt-2 p-2 bg-danger bg-opacity-10 rounded">
+                            <strong>Cálculo Actual:</strong>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span>
+                                    TEAEM = (<span id="teaem_numerador_ficha">0</span> / <span id="teaem_denominador_ficha">0</span>) × 100
+                                </span>
+                                <span class="badge bg-danger" id="teaem_resultado_ficha">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong><i class="fas fa-bullseye"></i> Meta:</strong> 
+                        <span class="text-success">≤ 2%</span> de eventos adversos
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong><i class="fas fa-chart-bar"></i> Umbrales de Control:</strong>
+                    </div>
+                    <div class="umbrales-container">
+                        <div class="umbral-item" id="teaem_umbral_excelencia">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle text-success"></i> 0-2%: Excelencia</span>
+                                <span class="badge bg-success umbral-badge">Verde</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="umbral-item" id="teaem_umbral_vigilancia">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle text-warning"></i> 2.1-5%: Aceptable con Vigilancia</span>
+                                <span class="badge bg-warning umbral-badge">Amarillo</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-warning" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="umbral-item" id="teaem_umbral_inaceptable">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle text-danger"></i> &gt;5%: Inaceptable</span>
+                                <span class="badge bg-danger umbral-badge">Rojo</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 8px;">
+                                <div class="progress-bar bg-danger" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 p-2 border-start border-4 border-danger bg-light">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Interpretación:</strong> Este indicador mide qué porcentaje de administraciones 
+                            tuvieron al menos UN correcto incumplido, representando potencial evento adverso.
+                        </small>
                     </div>
                 </div>
             </div>
@@ -204,12 +324,51 @@
 <style>
     .card {
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     .display-3 {
         font-weight: bold;
     }
     #correctosChart {
         max-height: 400px;
+    }
+    .ficha-tecnica {
+        border-width: 2px;
+    }
+    .ficha-tecnica:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .formula-box {
+        border-left: 4px solid #0d6efd;
+        font-size: 0.9rem;
+    }
+    .umbral-item {
+        padding: 8px;
+        margin: 6px 0;
+        border-radius: 6px;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    .umbral-item.activo {
+        background: linear-gradient(135deg, #fff 0%, #e9ecef 100%);
+        border: 2px solid;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .umbral-item.activo .umbral-badge {
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    .umbral-item:not(.activo) {
+        opacity: 0.6;
     }
 </style>
 {% endblock %}
@@ -259,6 +418,7 @@ async function cargarIndicadores() {
 }
 
 function actualizarCLMC(data) {
+    // Actualizar card principal
     document.getElementById('clmcValor').textContent = data.valor.toFixed(1) + '%';
     document.getElementById('clmcNumerador').textContent = data.numerador;
     document.getElementById('clmcDenominador').textContent = data.denominador;
@@ -271,9 +431,29 @@ function actualizarCLMC(data) {
     progress.style.width = data.valor + '%';
     progress.className = `progress-bar bg-${data.color}`;
     progress.textContent = data.valor.toFixed(1) + '%';
+    
+    // Actualizar ficha técnica
+    document.getElementById('clmc_numerador_ficha').textContent = data.numerador;
+    document.getElementById('clmc_denominador_ficha').textContent = data.denominador;
+    document.getElementById('clmc_resultado_ficha').textContent = data.valor.toFixed(1) + '%';
+    document.getElementById('clmc_resultado_ficha').className = `badge bg-${data.color}`;
+    
+    // Resaltar umbral activo
+    document.querySelectorAll('[id^="clmc_umbral_"]').forEach(el => el.classList.remove('activo'));
+    if (data.valor >= 90) {
+        document.getElementById('clmc_umbral_optimo').classList.add('activo');
+        document.getElementById('clmc_umbral_optimo').style.borderColor = '#198754';
+    } else if (data.valor >= 80) {
+        document.getElementById('clmc_umbral_alerta').classList.add('activo');
+        document.getElementById('clmc_umbral_alerta').style.borderColor = '#ffc107';
+    } else {
+        document.getElementById('clmc_umbral_critico').classList.add('activo');
+        document.getElementById('clmc_umbral_critico').style.borderColor = '#dc3545';
+    }
 }
 
 function actualizarTEAEM(data) {
+    // Actualizar card principal
     document.getElementById('teaemValor').textContent = data.valor.toFixed(1) + '%';
     document.getElementById('teaemNumerador').textContent = data.numerador;
     document.getElementById('teaemDenominador').textContent = data.denominador;
@@ -286,6 +466,25 @@ function actualizarTEAEM(data) {
     progress.style.width = data.valor + '%';
     progress.className = `progress-bar bg-${data.color}`;
     progress.textContent = data.valor.toFixed(1) + '%';
+    
+    // Actualizar ficha técnica
+    document.getElementById('teaem_numerador_ficha').textContent = data.numerador;
+    document.getElementById('teaem_denominador_ficha').textContent = data.denominador;
+    document.getElementById('teaem_resultado_ficha').textContent = data.valor.toFixed(1) + '%';
+    document.getElementById('teaem_resultado_ficha').className = `badge bg-${data.color}`;
+    
+    // Resaltar umbral activo (para TEAEM menor es mejor)
+    document.querySelectorAll('[id^="teaem_umbral_"]').forEach(el => el.classList.remove('activo'));
+    if (data.valor <= 2) {
+        document.getElementById('teaem_umbral_excelencia').classList.add('activo');
+        document.getElementById('teaem_umbral_excelencia').style.borderColor = '#198754';
+    } else if (data.valor <= 5) {
+        document.getElementById('teaem_umbral_vigilancia').classList.add('activo');
+        document.getElementById('teaem_umbral_vigilancia').style.borderColor = '#ffc107';
+    } else {
+        document.getElementById('teaem_umbral_inaceptable').classList.add('activo');
+        document.getElementById('teaem_umbral_inaceptable').style.borderColor = '#dc3545';
+    }
 }
 
 function actualizarTendencia(data) {
