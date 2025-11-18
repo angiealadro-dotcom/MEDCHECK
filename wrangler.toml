@@ -1,0 +1,21 @@
+# Wrangler configuration for Cloudflare Pages
+name = "medcheck"
+compatibility_date = "2025-11-18"
+account_id = "TU_ACCOUNT_ID_AQUI"  # Obtener de Cloudflare Dashboard
+
+# Cloudflare D1 Database (SQLite serverless)
+[[d1_databases]]
+binding = "DB"  # Variable en tu código
+database_name = "medcheck-db"
+database_id = "TU_DATABASE_ID_AQUI"  # Se genera al crear la DB
+
+# Variables de entorno
+[vars]
+ENVIRONMENT = "production"
+APP_NAME = "MedCheck"
+CORS_ORIGINS = "*"
+
+# Secretos (configurar con: wrangler secret put <NAME>)
+# SECRET_KEY - Para JWT tokens
+# VAPID_PRIVATE_KEY - Para notificaciones push
+# VAPID_PUBLIC_KEY - Para notificaciones push

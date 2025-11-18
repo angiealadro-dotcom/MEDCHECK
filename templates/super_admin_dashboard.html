@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Super Admin - MedCheck{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-crown text-warning me-2"></i>Panel de Super Administrador</h2>
+            <p class="text-muted">Gestión de organizaciones y usuarios de la plataforma</p>
+        </div>
+    </div>
+
+    <!-- Estadísticas generales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Total Organizaciones</h6>
+                    <h2>{{ organizations|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>Activas</h6>
+                    <h2>{{ organizations|selectattr('is_active')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6>Total Usuarios</h6>
+                    <h2>{{ organizations|sum(attribute='total_users') }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6>Total Checklists</h6>
+                    <h2>{{ organizations|sum(attribute='total_checklists') }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de organizaciones -->
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-hospital-alt me-2"></i>Organizaciones Registradas</h5>
+            <a href="/organizations/register" class="btn btn-success btn-sm">
+                <i class="fas fa-plus me-1"></i>Nueva Organización
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Organización</th>
+                            <th>Tipo</th>
+                            <th>Ubicación</th>
+                            <th>Contacto</th>
+                            <th>Plan</th>
+                            <th>Usuarios</th>
+                            <th>Checklists</th>
+                            <th>Estado</th>
+                            <th>Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org in organizations %}
+                        <tr>
+                            <td><strong>{{ org.id }}</strong></td>
+                            <td>
+                                <strong>{{ org.name }}</strong><br>
+                                <small class="text-muted">{{ org.slug }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ org.institution_type or 'N/A' }}</span>
+                            </td>
+                            <td>
+                                {{ org.city }}, {{ org.country }}
+                            </td>
+                            <td>
+                                <small>
+                                    <i class="fas fa-envelope me-1"></i>{{ org.contact_email }}<br>
+                                </small>
+                            </td>
+                            <td>
+                                {% if org.plan == 'free' %}
+                                    <span class="badge bg-secondary">Free</span>
+                                {% elif org.plan == 'pro' %}
+                                    <span class="badge bg-primary">Pro</span>
+                                {% elif org.plan == 'enterprise' %}
+                                    <span class="badge bg-success">Enterprise</span>
+                                {% endif %}
+                                {% if org.trial_ends_at %}
+                                <br><small class="text-muted">
+                                    Trial hasta {{ org.trial_ends_at.strftime('%d/%m/%Y') }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ org.active_users }}</span> / {{ org.total_users }}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ org.total_checklists }}</span>
+                            </td>
+                            <td>
+                                {% if org.is_active %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Activa
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle"></i> Inactiva
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ org.created_at.strftime('%d/%m/%Y') }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-warning" 
+                                            onclick="toggleOrganization({{ org.id }})" 
+                                            title="Activar/Desactivar">
+                                        <i class="fas fa-power-off"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function toggleOrganization(orgId) {
+    if (!confirm('¿Estás seguro de cambiar el estado de esta organización?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/organizations/${orgId}/toggle-active`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error al cambiar el estado');
+        }
+    } catch (error) {
+        alert('Error de conexión');
+    }
+}
+</script>
+{% endblock %}

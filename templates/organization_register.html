@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Organización - MedCheck{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2><i class="fas fa-hospital text-primary"></i> Registrar Organización</h2>
+                        <p class="text-muted">Crea tu cuenta institucional en MedCheck</p>
+                    </div>
+
+                    <form id="registerForm">
+                        <!-- Información de la Institución -->
+                        <h5 class="mb-3"><i class="fas fa-building me-2"></i>Información de la Institución</h5>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre de la Institución *</label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                   placeholder="Ej: Hospital General de México">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="institution_type" class="form-label">Tipo de Institución *</label>
+                                <select class="form-select" id="institution_type" name="institution_type" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Hospital Público">Hospital Público</option>
+                                    <option value="Hospital Privado">Hospital Privado</option>
+                                    <option value="Clínica">Clínica</option>
+                                    <option value="Centro de Salud">Centro de Salud</option>
+                                    <option value="Instituto Especializado">Instituto Especializado</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">País *</label>
+                                <input type="text" class="form-control" id="country" name="country" required
+                                       placeholder="Ej: México">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">Ciudad *</label>
+                                <input type="text" class="form-control" id="city" name="city" required
+                                       placeholder="Ej: Ciudad de México">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_phone" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="contact_phone" name="contact_phone"
+                                       placeholder="+52 55 1234 5678">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Dirección</label>
+                            <textarea class="form-control" id="address" name="address" rows="2"
+                                      placeholder="Dirección completa de la institución"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="contact_email" class="form-label">Email de Contacto Institucional *</label>
+                            <input type="email" class="form-control" id="contact_email" name="contact_email" required
+                                   placeholder="contacto@institucion.com">
+                            <small class="form-text text-muted">Email para notificaciones y comunicación oficial</small>
+                        </div>
+
+                        <!-- Información del Administrador -->
+                        <h5 class="mb-3 mt-4"><i class="fas fa-user-shield me-2"></i>Datos del Administrador</h5>
+                        
+                        <div class="mb-3">
+                            <label for="admin_name" class="form-label">Nombre Completo *</label>
+                            <input type="text" class="form-control" id="admin_name" name="admin_name" required
+                                   placeholder="Ej: Dr. Juan Pérez García">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="admin_email" class="form-label">Email del Administrador *</label>
+                            <input type="email" class="form-control" id="admin_email" name="admin_email" required
+                                   placeholder="admin@institucion.com">
+                            <small class="form-text text-muted">Este será tu usuario para iniciar sesión</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="admin_password" class="form-label">Contraseña *</label>
+                            <input type="password" class="form-control" id="admin_password" name="admin_password" required
+                                   minlength="8">
+                            <small class="form-text text-muted">
+                                Mínimo 8 caracteres, incluir mayúsculas, minúsculas y números
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="admin_password_confirm" class="form-label">Confirmar Contraseña *</label>
+                            <input type="password" class="form-control" id="admin_password_confirm" required
+                                   minlength="8">
+                        </div>
+
+                        <!-- Términos -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    Acepto los <a href="#" target="_blank">términos y condiciones</a> y la 
+                                    <a href="#" target="_blank">política de privacidad</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Alertas -->
+                        <div id="alertContainer"></div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-check-circle me-2"></i>Crear Cuenta
+                            </button>
+                            <a href="/auth/login" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Ya tengo cuenta
+                            </a>
+                        </div>
+
+                        <!-- Trial Info -->
+                        <div class="alert alert-info mt-4 mb-0">
+                            <i class="fas fa-gift me-2"></i><strong>Prueba gratuita de 30 días</strong>
+                            <p class="mb-0 mt-2">
+                                • Hasta 5 usuarios<br>
+                                • Todas las funcionalidades incluidas<br>
+                                • Sin tarjeta de crédito requerida
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const alertContainer = document.getElementById('alertContainer');
+    
+    // Validar contraseñas
+    const password = document.getElementById('admin_password').value;
+    const passwordConfirm = document.getElementById('admin_password_confirm').value;
+    
+    if (password !== passwordConfirm) {
+        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle me-2"></i>Las contraseñas no coinciden
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Deshabilitar botón
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creando cuenta...';
+    
+    try {
+        const formData = {
+            name: document.getElementById('name').value,
+            contact_email: document.getElementById('contact_email').value,
+            contact_phone: document.getElementById('contact_phone').value || null,
+            institution_type: document.getElementById('institution_type').value,
+            country: document.getElementById('country').value,
+            city: document.getElementById('city').value,
+            address: document.getElementById('address').value || null,
+            admin_name: document.getElementById('admin_name').value,
+            admin_email: document.getElementById('admin_email').value,
+            admin_password: password
+        };
+        
+        const response = await fetch('/organizations/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i><strong>¡Cuenta creada exitosamente!</strong>
+                    <p class="mb-0 mt-2">Redirigiendo al inicio de sesión...</p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.location.href = '/auth/login';
+            }, 2000);
+        } else {
+            alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fas fa-exclamation-circle me-2"></i>${data.detail || 'Error al crear la cuenta'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Crear Cuenta';
+        }
+    } catch (error) {
+        alertContainer.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle me-2"></i>Error de conexión. Por favor intenta de nuevo.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Crear Cuenta';
+    }
+});
+</script>
+{% endblock %}

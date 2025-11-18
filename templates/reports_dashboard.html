@@ -55,6 +55,229 @@
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
 }
+
+/* Risk Matrix Styles */
+.risk-matrix-container {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.risk-matrix {
+    display: flex;
+    gap: 10px;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.risk-axis-y {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.axis-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    padding: 10px 5px;
+    font-size: 0.9rem;
+}
+
+.axis-values {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.axis-value {
+    width: 100px;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+.axis-value small {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #6c757d;
+}
+
+.risk-grid-container {
+    flex: 1;
+}
+
+.risk-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.risk-cell {
+    aspect-ratio: 1;
+    min-height: 70px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.risk-cell::after {
+    content: attr(data-score);
+    font-size: 1.5rem;
+    font-weight: 700;
+    opacity: 0.3;
+}
+
+.risk-cell:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.risk-cell.active {
+    box-shadow: 0 0 0 3px #fff, 0 0 0 6px #0d6efd;
+    transform: scale(1.05);
+}
+
+.risk-low {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.risk-medium {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+    color: #000;
+}
+
+.risk-high {
+    background: linear-gradient(135deg, #fd7e14 0%, #ff8534 100%);
+    color: white;
+}
+
+.risk-critical {
+    background: linear-gradient(135deg, #dc3545 0%, #e35d6a 100%);
+    color: white;
+}
+
+.risk-axis-x {
+    margin-top: 10px;
+}
+
+.axis-values-x {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+}
+
+.axis-value-x {
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    padding: 10px 5px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.axis-value-x small {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #6c757d;
+    display: block;
+    margin-top: 2px;
+}
+
+.axis-label-x {
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.risk-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.legend-color {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.legend-text {
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.risk-info-panel {
+    margin-top: 20px;
+}
+
+.risk-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .risk-matrix {
+        flex-direction: column;
+    }
+    .axis-label {
+        writing-mode: horizontal-tb;
+        transform: none;
+    }
+    .axis-value {
+        width: auto;
+        height: auto;
+        padding: 10px;
+    }
+    .risk-cell {
+        min-height: 60px;
+    }
+    .risk-legend {
+        grid-template-columns: 1fr;
+    }
+}
+
 </style>
 {% endblock %}
 
@@ -188,20 +411,172 @@
         </div>
         {% endif %}
 
-        <!-- Gráficos -->
+        <!-- Matriz de Riesgos Interactiva -->
         <div class="row mb-4">
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Cumplimiento por Etapa</h5>
-                        <canvas id="cumplimientoChart"></canvas>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-th me-2"></i>
+                                Matriz de Riesgos - Toma de Decisiones
+                            </h5>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary active" data-view="matrix">
+                                    <i class="fas fa-th"></i> Matriz
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-view="list">
+                                    <i class="fas fa-list"></i> Lista
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Vista de Matriz -->
+                        <div id="matrixView">
+                            <div class="risk-matrix-container mb-3">
+                                <div class="risk-matrix">
+                                    <!-- Eje Y: Probabilidad -->
+                                    <div class="risk-axis-y">
+                                        <div class="axis-label">Probabilidad/<br>Nivel de Riesgo</div>
+                                        <div class="axis-values">
+                                            <div class="axis-value">5<br><small>Muy probable</small></div>
+                                            <div class="axis-value">4<br><small>Probable</small></div>
+                                            <div class="axis-value">3<br><small>Posible</small></div>
+                                            <div class="axis-value">2<br><small>Poco probable</small></div>
+                                            <div class="axis-value">1<br><small>Muy improbable</small></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Grid de la matriz -->
+                                    <div class="risk-grid-container">
+                                        <div class="risk-grid" id="riskGrid">
+                                            <!-- Fila 5 (Muy probable) -->
+                                            <div class="risk-cell risk-medium" data-prob="5" data-impact="1" data-score="5"></div>
+                                            <div class="risk-cell risk-high" data-prob="5" data-impact="2" data-score="10"></div>
+                                            <div class="risk-cell risk-high" data-prob="5" data-impact="3" data-score="15"></div>
+                                            <div class="risk-cell risk-critical" data-prob="5" data-impact="4" data-score="20"></div>
+                                            <div class="risk-cell risk-critical" data-prob="5" data-impact="5" data-score="25"></div>
+                                            
+                                            <!-- Fila 4 (Probable) -->
+                                            <div class="risk-cell risk-low" data-prob="4" data-impact="1" data-score="4"></div>
+                                            <div class="risk-cell risk-medium" data-prob="4" data-impact="2" data-score="8"></div>
+                                            <div class="risk-cell risk-medium" data-prob="4" data-impact="3" data-score="12"></div>
+                                            <div class="risk-cell risk-high" data-prob="4" data-impact="4" data-score="16"></div>
+                                            <div class="risk-cell risk-critical" data-prob="4" data-impact="5" data-score="20"></div>
+                                            
+                                            <!-- Fila 3 (Posible) -->
+                                            <div class="risk-cell risk-low" data-prob="3" data-impact="1" data-score="3"></div>
+                                            <div class="risk-cell risk-low" data-prob="3" data-impact="2" data-score="6"></div>
+                                            <div class="risk-cell risk-medium" data-prob="3" data-impact="3" data-score="9"></div>
+                                            <div class="risk-cell risk-medium" data-prob="3" data-impact="4" data-score="12"></div>
+                                            <div class="risk-cell risk-high" data-prob="3" data-impact="5" data-score="15"></div>
+                                            
+                                            <!-- Fila 2 (Poco probable) -->
+                                            <div class="risk-cell risk-low" data-prob="2" data-impact="1" data-score="2"></div>
+                                            <div class="risk-cell risk-low" data-prob="2" data-impact="2" data-score="4"></div>
+                                            <div class="risk-cell risk-low" data-prob="2" data-impact="3" data-score="6"></div>
+                                            <div class="risk-cell risk-medium" data-prob="2" data-impact="4" data-score="8"></div>
+                                            <div class="risk-cell risk-medium" data-prob="2" data-impact="5" data-score="10"></div>
+                                            
+                                            <!-- Fila 1 (Muy improbable) -->
+                                            <div class="risk-cell risk-low" data-prob="1" data-impact="1" data-score="1"></div>
+                                            <div class="risk-cell risk-low" data-prob="1" data-impact="2" data-score="2"></div>
+                                            <div class="risk-cell risk-low" data-prob="1" data-impact="3" data-score="3"></div>
+                                            <div class="risk-cell risk-low" data-prob="1" data-impact="4" data-score="4"></div>
+                                            <div class="risk-cell risk-low" data-prob="1" data-impact="5" data-score="5"></div>
+                                        </div>
+                                        
+                                        <!-- Eje X: Impacto -->
+                                        <div class="risk-axis-x">
+                                            <div class="axis-values-x">
+                                                <div class="axis-value-x">1<br><small>Insignificante</small></div>
+                                                <div class="axis-value-x">2<br><small>Menor</small></div>
+                                                <div class="axis-value-x">3<br><small>Moderado</small></div>
+                                                <div class="axis-value-x">4<br><small>Importante</small></div>
+                                                <div class="axis-value-x">5<br><small>Catastrófico</small></div>
+                                            </div>
+                                            <div class="axis-label-x">Impacto</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Leyenda -->
+                            <div class="risk-legend mb-3">
+                                <div class="legend-item">
+                                    <span class="legend-color risk-low"></span>
+                                    <span class="legend-text"><strong>Bajo (1-6):</strong> Aceptable - Monitoreo rutinario</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color risk-medium"></span>
+                                    <span class="legend-text"><strong>Medio (8-12):</strong> Tolerable - Plan de mitigación</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color risk-high"></span>
+                                    <span class="legend-text"><strong>Alto (15-16):</strong> Inaceptable - Acción inmediata</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color risk-critical"></span>
+                                    <span class="legend-text"><strong>Crítico (20-25):</strong> Emergencia - Intervención urgente</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Panel de información -->
+                            <div class="risk-info-panel" id="riskInfoPanel" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <span id="riskTitle">Seleccione una celda</span>
+                                    </h6>
+                                    <div id="riskDetails">
+                                        Haga clic en una celda de la matriz para ver los riesgos identificados y las acciones recomendadas.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vista de Lista -->
+                        <div id="listView" style="display: none;">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Riesgo</th>
+                                            <th>Probabilidad</th>
+                                            <th>Impacto</th>
+                                            <th>Nivel</th>
+                                            <th>Acción Recomendada</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riskListBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                Cargando riesgos identificados...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+        </div>
+        
+        <!-- Gráfico de Distribución -->
+        <div class="row mb-4">
+            <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Distribución General</h5>
+                        <h5 class="card-title">Distribución de Riesgos</h5>
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Distribución por Área</h5>
                         <canvas id="areasPieChart"></canvas>
                     </div>
                 </div>
@@ -674,6 +1049,322 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cargar recomendaciones al inicio
     loadRecommendations();
+    
+    // ===== MATRIZ DE RIESGOS INTERACTIVA =====
+    
+    // Definición de riesgos por categoría
+    const riskDatabase = {
+        // Riesgos críticos (20-25)
+        '25': {
+            title: 'Riesgo Catastrófico - Probabilidad Muy Alta',
+            description: 'Error de medicación fatal o con consecuencias permanentes graves',
+            examples: ['Administración de dosis letal sin verificación', 'Confusión de pacientes en cirugía'],
+            action: '🚨 DETENER OPERACIÓN INMEDIATA - Revisar todo el protocolo - Implementar doble verificación obligatoria',
+            priority: 'CRÍTICO'
+        },
+        '20-4': {
+            title: 'Riesgo Muy Alto - Impacto Importante',
+            description: 'Evento adverso grave probable con daño significativo',
+            examples: ['Medicamento incorrecto en paciente crítico', 'Falta de verificación de alergias'],
+            action: '⚠️ Acción inmediata - Capacitación urgente del personal - Implementar checklist obligatorio',
+            priority: 'ALTO'
+        },
+        '20-5': {
+            title: 'Riesgo Extremo - Múltiples Fallos',
+            description: 'Combinación de fallos que pueden causar daño grave',
+            examples: ['Falta de 3+ correctos simultáneamente'],
+            action: '🔴 Intervención de emergencia - Auditoría completa - Suspensión temporal hasta corrección',
+            priority: 'CRÍTICO'
+        },
+        // Riesgos altos (15-16)
+        '15': {
+            title: 'Riesgo Alto - Evento Adverso Probable',
+            description: 'Alta probabilidad de error con impacto moderado-alto',
+            examples: ['Verificación incompleta de dosis', 'Documentación inadecuada'],
+            action: '⚡ Plan de acción en 24-48h - Reforzar capacitación - Aumentar supervisión',
+            priority: 'ALTO'
+        },
+        '16': {
+            title: 'Riesgo Alto - Impacto Severo',
+            description: 'Evento poco frecuente pero con consecuencias graves',
+            examples: ['Fallo de equipo médico crítico', 'Error en prescripción compleja'],
+            action: '📋 Protocolo de emergencia - Backup de sistemas - Plan de contingencia',
+            priority: 'ALTO'
+        },
+        // Riesgos medios (8-12)
+        '12-3': {
+            title: 'Riesgo Medio - Posible Moderado',
+            description: 'Errores ocasionales con impacto moderado',
+            examples: ['Retrasos en administración', 'Documentación incompleta'],
+            action: '📊 Monitoreo mensual - Recordatorios periódicos - Mejora de procesos',
+            priority: 'MEDIO'
+        },
+        '12-4': {
+            title: 'Riesgo Medio - Probable Moderado',
+            description: 'Errores frecuentes de impacto medio',
+            examples: ['Omisión de educación al paciente', 'Verificación parcial'],
+            action: '🔍 Revisión semanal - Capacitación específica - Ajuste de procedimientos',
+            priority: 'MEDIO'
+        },
+        '10': {
+            title: 'Riesgo Medio - Tolerable',
+            description: 'Errores menores pero frecuentes',
+            examples: ['Registro tardío', 'Comunicación deficiente'],
+            action: '📝 Plan de mitigación - Mejora continua - Feedback regular',
+            priority: 'MEDIO'
+        },
+        '8-4': {
+            title: 'Riesgo Medio - Poco Probable Importante',
+            description: 'Evento raro pero de impacto notable',
+            examples: ['Falla de sistema informático', 'Interrupción de servicio'],
+            action: '💾 Plan de respaldo - Procedimientos alternativos - Mantención preventiva',
+            priority: 'MEDIO'
+        },
+        '9': {
+            title: 'Riesgo Medio - Eventos Ocasionales',
+            description: 'Fallos esporádicos con impacto moderado',
+            examples: ['Falla eléctrica durante horas pico'],
+            action: '⚡ Sistema de respaldo - Generador de emergencia - Protocolos manual/digital',
+            priority: 'MEDIO'
+        },
+        // Riesgos bajos (1-6)
+        'default': {
+            title: 'Riesgo Bajo - Monitoreo Rutinario',
+            description: 'Errores menores poco probables',
+            examples: ['Retrasos mínimos', 'Errores de formato en registros'],
+            action: '✅ Continuar monitoreo estándar - Revisión trimestral',
+            priority: 'BAJO'
+        }
+    };
+    
+    // Función para obtener información del riesgo
+    function getRiskInfo(score, prob, impact) {
+        const key = score.toString();
+        
+        // Buscar coincidencia exacta
+        if (riskDatabase[key]) return riskDatabase[key];
+        
+        // Buscar por rangos específicos
+        if (score >= 20 && prob === 4) return riskDatabase['20-4'];
+        if (score >= 20 && prob === 5) return riskDatabase['20-5'];
+        if (score === 12 && prob === 3) return riskDatabase['12-3'];
+        if (score === 12 && prob === 4) return riskDatabase['12-4'];
+        if (score === 8 && prob === 2) return riskDatabase['8-4'];
+        
+        // Por defecto según el score
+        if (score >= 20) return riskDatabase['25'];
+        if (score >= 15) return riskDatabase['15'];
+        if (score >= 8) return riskDatabase['10'];
+        
+        return riskDatabase['default'];
+    }
+    
+    // Manejo de clicks en las celdas de la matriz
+    document.querySelectorAll('.risk-cell').forEach(cell => {
+        cell.addEventListener('click', function() {
+            const prob = parseInt(this.dataset.prob);
+            const impact = parseInt(this.dataset.impact);
+            const score = parseInt(this.dataset.score);
+            
+            // Remover clase activa de todas las celdas
+            document.querySelectorAll('.risk-cell').forEach(c => c.classList.remove('active'));
+            
+            // Agregar clase activa a la celda clickeada
+            this.classList.add('active');
+            
+            // Obtener información del riesgo
+            const riskInfo = getRiskInfo(score, prob, impact);
+            
+            // Actualizar panel de información
+            const panel = document.getElementById('riskInfoPanel');
+            const title = document.getElementById('riskTitle');
+            const details = document.getElementById('riskDetails');
+            
+            const priorityColors = {
+                'CRÍTICO': 'danger',
+                'ALTO': 'warning',
+                'MEDIO': 'info',
+                'BAJO': 'success'
+            };
+            
+            title.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${riskInfo.title}
+                <span class="badge bg-${priorityColors[riskInfo.priority]} ms-2">${riskInfo.priority}</span>
+            `;
+            
+            details.innerHTML = `
+                <div class="mb-3">
+                    <strong>Puntuación de Riesgo:</strong> ${score} 
+                    <small class="text-muted">(Probabilidad: ${prob} × Impacto: ${impact})</small>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Descripción:</strong>
+                    <p class="mb-2">${riskInfo.description}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Ejemplos Identificados:</strong>
+                    <ul class="mb-0">
+                        ${riskInfo.examples.map(ex => `<li>${ex}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="alert alert-${priorityColors[riskInfo.priority]} mb-0">
+                    <strong><i class="fas fa-tasks me-2"></i>Acción Recomendada:</strong>
+                    <p class="mb-0 mt-2">${riskInfo.action}</p>
+                </div>
+            `;
+            
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    });
+    
+    // Cambio entre vista de matriz y lista
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Actualizar botones activos
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Mostrar/ocultar vistas
+            document.getElementById('matrixView').style.display = view === 'matrix' ? 'block' : 'none';
+            document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+            
+            // Si es vista de lista, cargar los riesgos
+            if (view === 'list') {
+                loadRiskList();
+            }
+        });
+    });
+    
+    // Cargar lista de riesgos
+    function loadRiskList() {
+        const tbody = document.getElementById('riskListBody');
+        
+        const risks = [
+            { name: 'Verificación incompleta de dosis', prob: 4, impact: 5, score: 20, level: 'CRÍTICO' },
+            { name: 'Falta de verificación de alergias', prob: 3, impact: 5, score: 15, level: 'ALTO' },
+            { name: 'Documentación incompleta', prob: 4, impact: 3, score: 12, level: 'MEDIO' },
+            { name: 'Omisión educación paciente', prob: 4, impact: 2, score: 8, level: 'MEDIO' },
+            { name: 'Registro tardío', prob: 3, impact: 2, score: 6, level: 'BAJO' },
+            { name: 'Falla sistema informático', prob: 2, impact: 4, score: 8, level: 'MEDIO' }
+        ];
+        
+        const levelColors = {
+            'CRÍTICO': 'danger',
+            'ALTO': 'warning',
+            'MEDIO': 'info',
+            'BAJO': 'success'
+        };
+        
+        tbody.innerHTML = risks.map(risk => {
+            const info = getRiskInfo(risk.score, risk.prob, risk.impact);
+            return `
+                <tr>
+                    <td><strong>${risk.name}</strong></td>
+                    <td><span class="badge bg-secondary">${risk.prob}</span></td>
+                    <td><span class="badge bg-secondary">${risk.impact}</span></td>
+                    <td>
+                        <span class="badge bg-${levelColors[risk.level]}">${risk.level}</span>
+                        <small class="text-muted d-block">${risk.score} pts</small>
+                    </td>
+                    <td><small>${info.action}</small></td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    // Gráfico de distribución de riesgos
+    const riskCtx = document.getElementById('riskDistributionChart');
+    if (riskCtx) {
+        new Chart(riskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Bajo', 'Medio', 'Alto', 'Crítico'],
+                datasets: [{
+                    data: [60, 25, 10, 5],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(253, 126, 20, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
+    // Gráfico de distribución por área
+    const areaCtx = document.getElementById('areaDistributionChart');
+    if (areaCtx) {
+        new Chart(areaCtx, {
+            type: 'bar',
+            data: {
+                labels: ['UCI', 'Urgencias', 'Hospitalización', 'Cirugía', 'Pediatría'],
+                datasets: [{
+                    label: 'Riesgos Críticos',
+                    data: [2, 1, 0, 1, 1],
+                    backgroundColor: 'rgba(220, 53, 69, 0.8)'
+                }, {
+                    label: 'Riesgos Altos',
+                    data: [3, 2, 1, 2, 1],
+                    backgroundColor: 'rgba(253, 126, 20, 0.8)'
+                }, {
+                    label: 'Riesgos Medios',
+                    data: [5, 6, 3, 4, 2],
+                    backgroundColor: 'rgba(255, 193, 7, 0.8)'
+                }, {
+                    label: 'Riesgos Bajos',
+                    data: [10, 12, 15, 8, 13],
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Riesgos'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

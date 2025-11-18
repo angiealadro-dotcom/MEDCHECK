@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -12,4 +12,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     full_name = Column(String)
     is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)  # Admin dentro de su organización
+    is_super_admin = Column(Boolean, default=False)  # Super admin de toda la plataforma
+    
+    # Multi-tenancy: cada usuario pertenece a una organización
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True)
+    # organization = relationship("Organization", back_populates="users")

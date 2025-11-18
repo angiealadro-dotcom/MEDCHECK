@@ -1,0 +1,13 @@
+{
+  "backup_date": "2025-11-18T00:36:44.011149",
+  "admin_user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@medcheck.com",
+    "full_name": "Administrador del Sistema",
+    "hashed_password": "$2b$12$stqmrbQjNtvsb.HqdDcnbeYPo853D3o.N.Lti6dwyQ2YSDn5pKqmS",
+    "is_active": true,
+    "is_admin": true
+  },
+  "note": "Admin original guardado antes de migración a multi-tenancy. Este usuario será convertido en SUPER_ADMIN."
+}

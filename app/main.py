@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from app.db.database import create_tables, check_db_connection, SessionLocal
-from app.routers import auth_simple, checklist, reports, indicadores
+from app.routers import auth_simple, checklist, reports, indicadores, organizations
 from app.routers import notifications
 from app.routers import reminders
 from app.routers import alerts_sqlite as alerts
@@ -61,6 +61,7 @@ app.include_router(indicadores.router, tags=["indicadores"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(notifications.router)
 app.include_router(reminders.router)
+app.include_router(organizations.router)  # Multi-tenancy
 
 # Ruta principal
 @app.get("/", response_class=HTMLResponse)
