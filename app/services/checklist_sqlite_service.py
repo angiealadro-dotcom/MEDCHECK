@@ -10,6 +10,21 @@ def create_entries_from_form(db: Session, form: ChecklistForm, username: str | N
     created: List[ChecklistEntrySQL] = []
     observaciones = form.observaciones or None
 
+    # Extraer los 10 Correctos de administración
+    admin_items = (form.items or {}).get('administracion', {})
+    diez_correctos = {
+        'paciente_correcto': admin_items.get('paciente_correcto', False),
+        'medicamento_correcto': admin_items.get('medicamento_correcto', False),
+        'dosis_correcta': admin_items.get('dosis_correcta', False),
+        'via_correcta': admin_items.get('via_correcta', False),
+        'hora_correcta': admin_items.get('hora_correcta', False),
+        'fecha_vencimiento_verificada': admin_items.get('fecha_vencimiento_verificada', False),
+        'educacion_paciente': admin_items.get('educacion_paciente', False),
+        'registro_correcto': admin_items.get('registro_correcto', False),
+        'alergias_verificadas': admin_items.get('alergias_verificadas', False),
+        'responsabilidad_personal': admin_items.get('responsabilidad_personal', False),
+    }
+
     # Esperamos estructura: items: { prescripcion: {...}, preparacion: {...}, administracion: {...} }
     for etapa, items in (form.items or {}).items():
         for item_key, cumple in (items or {}).items():
@@ -23,6 +38,8 @@ def create_entries_from_form(db: Session, form: ChecklistForm, username: str | N
                 usuario=username or "demo",
                 metadatos=None,
                 fecha_hora=datetime.utcnow(),
+                # Agregar los 10 Correctos a TODAS las entradas (para administración tendrán valores reales)
+                **diez_correctos
             )
             db.add(entry)
             created.append(entry)

@@ -74,29 +74,81 @@
                 </div>
             </div>
 
-            <!-- Etapa: Administración -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>3. Administración</h4>
+            <!-- Etapa: Administración - Los 10 Correctos -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-pills"></i> 3. Administración - Los 10 Correctos</h4>
+                    <small>Verifique TODOS los correctos antes de administrar el medicamento</small>
                 </div>
                 <div class="card-body">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="paciente_correcto">
-                        <label class="form-check-label">
-                            Paciente correcto verificado
-                        </label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="paciente_correcto" required>
+                                <label class="form-check-label">
+                                    <strong>1. Paciente Correcto</strong> - Dos identificadores únicos
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="medicamento_correcto" required>
+                                <label class="form-check-label">
+                                    <strong>2. Medicamento Correcto</strong> - Nombre genérico y comercial
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="dosis_correcta" required>
+                                <label class="form-check-label">
+                                    <strong>3. Dosis Correcta</strong> - Cantidad exacta prescrita
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="via_correcta" required>
+                                <label class="form-check-label">
+                                    <strong>4. Vía Correcta</strong> - Ruta de administración (oral, IV, IM, SC)
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="hora_correcta" required>
+                                <label class="form-check-label">
+                                    <strong>5. Hora Correcta</strong> - Intervalo y horario establecido
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="fecha_vencimiento_verificada" required>
+                                <label class="form-check-label">
+                                    <strong>6. Fecha de Vencimiento</strong> - Medicamento no caducado
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="educacion_paciente" required>
+                                <label class="form-check-label">
+                                    <strong>7. Educación al Paciente</strong> - Informar sobre medicamento
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="registro_correcto" required>
+                                <label class="form-check-label">
+                                    <strong>8. Registro Correcto</strong> - Documentar inmediatamente
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="alergias_verificadas_admin" required>
+                                <label class="form-check-label">
+                                    <strong>9. Verificación de Alergias</strong> - Historial confirmado
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="responsabilidad_personal" required>
+                                <label class="form-check-label">
+                                    <strong>10. Responsabilidad Personal</strong> - Preparé, administré y registré
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="hora_correcta">
-                        <label class="form-check-label">
-                            Hora correcta de administración
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="via_correcta">
-                        <label class="form-check-label">
-                            Vía de administración correcta
-                        </label>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> <strong>Importante:</strong> Todos los correctos son obligatorios para completar la administración de manera segura.
                     </div>
                 </div>
             </div>
@@ -117,6 +169,8 @@
 document.getElementById('checklistForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    
+    // Datos de administración con los 10 Correctos
     const data = {
         area: formData.get('area'),
         turno: formData.get('turno'),
@@ -132,9 +186,17 @@ document.getElementById('checklistForm').addEventListener('submit', async (e) =>
                 verificacion: formData.get('verificacion_medicamento') === 'on'
             },
             administracion: {
-                paciente: formData.get('paciente_correcto') === 'on',
-                hora: formData.get('hora_correcta') === 'on',
-                via: formData.get('via_correcta') === 'on'
+                // Los 10 Correctos
+                paciente_correcto: formData.get('paciente_correcto') === 'on',
+                medicamento_correcto: formData.get('medicamento_correcto') === 'on',
+                dosis_correcta: formData.get('dosis_correcta') === 'on',
+                via_correcta: formData.get('via_correcta') === 'on',
+                hora_correcta: formData.get('hora_correcta') === 'on',
+                fecha_vencimiento_verificada: formData.get('fecha_vencimiento_verificada') === 'on',
+                educacion_paciente: formData.get('educacion_paciente') === 'on',
+                registro_correcto: formData.get('registro_correcto') === 'on',
+                alergias_verificadas: formData.get('alergias_verificadas_admin') === 'on',
+                responsabilidad_personal: formData.get('responsabilidad_personal') === 'on'
             }
         },
         observaciones: formData.get('observaciones')
@@ -150,14 +212,15 @@ document.getElementById('checklistForm').addEventListener('submit', async (e) =>
         });
 
         if (response.ok) {
-            alert('Lista de cotejo guardada exitosamente');
+            alert('✅ Lista de cotejo guardada exitosamente con los 10 Correctos verificados');
             window.location.href = '/checklist/history';
         } else {
-            alert('Error al guardar la lista de cotejo');
+            const error = await response.json();
+            alert('❌ Error al guardar: ' + (error.detail || 'Error desconocido'));
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión');
+        alert('❌ Error de conexión al servidor');
     }
 });
 </script>
