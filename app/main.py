@@ -77,6 +77,14 @@ async def login_page(request: Request):
         {"request": request}
     )
 
+# Página de Indicadores de Calidad
+@app.get("/indicadores-calidad", response_class=HTMLResponse)
+async def indicadores_calidad(request: Request):
+    return templates.TemplateResponse(
+        "indicadores_calidad.html",
+        {"request": request}
+    )
+
 # Inicialización de la base de datos
 @app.on_event("startup")
 async def startup_event():
