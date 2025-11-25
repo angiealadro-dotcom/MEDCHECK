@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Errores de Medicación - MedCheck</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background:#f5f7fa; margin:0; }
+    .navbar { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; }
+    .navbar a { color:#fff; text-decoration:none; margin-left:20px; }
+    .container { max-width:1200px; margin:0 auto; padding:30px 20px; }
+    h1 { margin:0; font-size:22px; }
+    .grid { display:grid; gap:20px; }
+    .grid.cols-3 { grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+    .card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { margin:0 0 15px; font-size:18px; color:#333; }
+    .metrics { display:flex; flex-wrap:wrap; gap:15px; }
+    .metric { flex:1 1 160px; background:#667eea; color:#fff; padding:15px; border-radius:10px; text-align:center; }
+    .metric .value { font-size:28px; font-weight:700; }
+    .metric .label { font-size:12px; opacity:.9; }
+    form .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; }
+    label { display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:#444; }
+    input, select, textarea { width:100%; padding:10px 12px; border:2px solid #e0e0e0; border-radius:8px; font-size:14px; font-family:inherit; }
+    textarea { resize:vertical; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:#667eea; }
+    .btn { background:#667eea; color:#fff; border:none; padding:12px 20px; border-radius:8px; font-weight:600; cursor:pointer; transition:.2s; }
+    .btn:hover { background:#764ba2; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:10px 12px; border-bottom:1px solid #e0e0e0; font-size:13px; text-align:left; }
+    th { background:#f0f2f8; font-weight:600; color:#555; }
+    .badge { display:inline-block; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+    .severity-near_miss { background:#ffeaa7; color:#c27f00; }
+    .severity-minor { background:#dfe6e9; color:#2d3436; }
+    .severity-moderate { background:#74b9ff; color:#0c4b7f; }
+    .severity-severe { background:#e17055; color:#fff; }
+    .severity-sentinel { background:#d63031; color:#fff; }
+    .flex { display:flex; align-items:center; gap:10px; }
+    .timeline-bar { height:6px; background:#e0e0e0; border-radius:3px; overflow:hidden; margin-top:6px; }
+    .timeline-fill { height:100%; background:linear-gradient(135deg,#667eea,#764ba2); }
+    .small { font-size:11px; color:#666; }
+    .message { padding:12px; border-radius:8px; margin-bottom:15px; display:none; }
+    .message.show { display:block; }
+    .message.error { background:#fee; color:#c0392b; }
+    .message.success { background:#e9f9ee; color:#2e7d32; }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>Errores de Medicación</h1>
+    <div>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/reports.html">Reportes</a>
+    </div>
+  </div>
+  <div class="container">
+    <div class="grid cols-3">
+      <div class="card" id="metricsCard">
+        <h2>Métricas (Últimos 30 días)</h2>
+        <div class="metrics" id="metrics"></div>
+      </div>
+      <div class="card">
+        <h2>Registrar Error</h2>
+        <div id="formMessage" class="message"></div>
+        <form id="errorForm">
+          <div class="row">
+            <div>
+              <label>Tipo de Error *</label>
+              <select id="error_type" required>
+                <option value="">Seleccionar...</option>
+                <option value="paciente">Paciente</option>
+                <option value="medicamento">Medicamento</option>
+                <option value="dosis">Dosis</option>
+                <option value="hora">Hora</option>
+                <option value="via">Vía</option>
+                <option value="alergia">Alergia</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label>Severidad *</label>
+              <select id="severity" required>
+                <option value="">Seleccionar...</option>
+                <option value="near_miss">Near Miss</option>
+                <option value="minor">Leve</option>
+                <option value="moderate">Moderado</option>
+                <option value="severe">Severo</option>
+                <option value="sentinel">Sentinel</option>
+              </select>
+            </div>
+            <div>
+              <label>Etapa *</label>
+              <select id="stage" required>
+                <option value="">Seleccionar...</option>
+                <option value="prescription">Prescripción</option>
+                <option value="transcription">Transcripción</option>
+                <option value="dispensing">Dispensación</option>
+                <option value="administration">Administración</option>
+                <option value="monitoring">Monitoreo</option>
+              </select>
+            </div>
+          </div>
+          <label>Descripción</label>
+          <textarea id="description" rows="3"></textarea>
+          <label>Factores Contributivos</label>
+          <textarea id="factors" rows="2"></textarea>
+          <button type="submit" class="btn" style="margin-top:10px; width:100%;">Guardar Error</button>
+        </form>
+      </div>
+      <div class="card" id="timelineCard">
+        <h2>Timeline</h2>
+        <div id="timeline" class="small">Cargando...</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:25px;">
+      <h2>Eventos Registrados</h2>
+      <div id="errorsTable">Cargando...</div>
+    </div>
+  </div>
+  <script>
+    const token = localStorage.getItem('access_token');
+    if (!token) window.location.href = '/login.html';
+
+    async function fetchAuth(url, options={}) {
+      const res = await fetch(url, { ...options, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...(options.headers||{}) } });
+      if (res.status === 401) { localStorage.removeItem('access_token'); window.location.href = '/login.html'; }
+      return res.json();
+    }
+
+    function severityClass(sev){ return `severity-${sev}`; }
+
+    async function loadMetrics(){
+      const data = await fetchAuth('/errors/metrics?days=30');
+      const metricsDiv = document.getElementById('metrics');
+      const html = `
+        <div class="metric"><div class="value">${data.administrations}</div><div class="label">Administraciones</div></div>
+        <div class="metric"><div class="value">${data.errors}</div><div class="label">Errores</div></div>
+        <div class="metric"><div class="value">${data.error_rate}%</div><div class="label">Tasa de Error</div></div>
+      `;
+      metricsDiv.innerHTML = html;
+    }
+
+    async function loadTimeline(){
+      const data = await fetchAuth('/errors/timeline?days=30');
+      const container = document.getElementById('timeline');
+      if (!data.timeline || data.timeline.length === 0){ container.textContent = 'Sin eventos en el periodo'; return; }
+      container.innerHTML = data.timeline.map(d => {
+        const width = Math.min(100, d.total * 10);
+        return `<div style="margin-bottom:8px;">
+          <strong>${d.date}</strong> - ${d.total} errores <span style="color:#d63031;">(${d.severe} severos)</span>
+          <div class="timeline-bar"><div class="timeline-fill" style="width:${width}%;"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    async function loadErrors(){
+      const data = await fetchAuth('/errors?limit=200');
+      const div = document.getElementById('errorsTable');
+      if (data.errors.length === 0){ div.innerHTML = '<p style="text-align:center;color:#666;">No hay errores registrados.</p>'; return; }
+      div.innerHTML = `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Severidad</th><th>Etapa</th><th>Descripción</th></tr></thead><tbody>
+        ${data.errors.map(e => `<tr>
+          <td>${(e.occurredAt||'').slice(0,16).replace('T',' ')}</td>
+          <td>${e.errorType}</td>
+          <td><span class="badge ${severityClass(e.severity)}">${e.severity}</span></td>
+          <td>${e.stage}</td>
+          <td>${e.description || ''}</td>
+        </tr>`).join('')}
+      </tbody></table>`;
+    }
+
+    // Form submit
+    document.getElementById('errorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('formMessage');
+      msg.className='message';
+      const payload = {
+        error_type: document.getElementById('error_type').value,
+        severity: document.getElementById('severity').value,
+        stage: document.getElementById('stage').value,
+        description: document.getElementById('description').value || null,
+        contributing_factors: document.getElementById('factors').value || null,
+      };
+      const res = await fetch('/errors', { method:'POST', headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      const data = await res.json();
+      if (res.ok){
+        msg.textContent='Registrado correctamente';
+        msg.classList.add('show','success');
+        e.target.reset();
+        loadMetrics();
+        loadErrors();
+        loadTimeline();
+      } else {
+        msg.textContent=data.error || 'Error al registrar';
+        msg.classList.add('show','error');
+      }
+    });
+
+    // Initial load
+    loadMetrics();
+    loadTimeline();
+    loadErrors();
+  </script>
+</body>
+</html>

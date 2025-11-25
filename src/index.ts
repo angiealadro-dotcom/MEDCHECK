@@ -9,6 +9,7 @@ import checklistRouter from './routes/checklist';
 import organizationsRouter from './routes/organizations';
 import reportsRouter from './routes/reports';
 import remindersRouter from './routes/reminders';
+import errorsRouter from './routes/errors';
 
 // Types
 export type Env = {
@@ -49,6 +50,7 @@ app.route('/checklist', checklistRouter);
 app.route('/organizations', organizationsRouter);
 app.route('/reports', reportsRouter);
 app.route('/reminders', remindersRouter);
+app.route('/errors', errorsRouter);
 
 // Root - serve landing page
 app.get('/', async (c) => {

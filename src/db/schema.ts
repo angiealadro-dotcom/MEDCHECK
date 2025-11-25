@@ -87,15 +87,37 @@ export const webpushSubscriptions = sqliteTable('webpush_subscriptions', {
   createdAt: text('created_at').default(sql`(datetime('now'))`),
 });
 
+// Medication Errors Table
+// Registra eventos de errores de medicación para análisis de calidad y tasa de errores
+// Un error puede estar asociado a un checklist_entry (administración) o reportarse independiente
+export const medicationErrors = sqliteTable('medication_errors', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  organizationId: integer('organization_id').notNull().references(() => organizations.id),
+  reportedByUserId: integer('reported_by_user_id').notNull().references(() => users.id),
+  checklistEntryId: integer('checklist_entry_id').references(() => checklistEntries.id),
+  errorType: text('error_type').notNull(), // p.ej: 'dosis', 'paciente', 'medicamento', 'via', 'hora', 'alergia', 'otro'
+  severity: text('severity', { enum: ['near_miss', 'minor', 'moderate', 'severe', 'sentinel'] }).notNull(),
+  stage: text('stage', { enum: ['prescription', 'transcription', 'dispensing', 'administration', 'monitoring'] }).notNull(),
+  description: text('description'),
+  contributingFactors: text('contributing_factors'), // texto libre (fatiga, ambiente, comunicación, etc.)
+  occurredAt: text('occurred_at').default(sql`(datetime('now'))`),
+  detectedAt: text('detected_at').default(sql`(datetime('now'))`),
+  resolved: integer('resolved', { mode: 'boolean' }).default(false),
+  resolutionNotes: text('resolution_notes'),
+  createdAt: text('created_at').default(sql`(datetime('now'))`),
+});
+
 // TypeScript Types
 export type Organization = typeof organizations.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type ChecklistEntry = typeof checklistEntries.$inferSelect;
 export type Reminder = typeof reminders.$inferSelect;
 export type WebPushSubscription = typeof webpushSubscriptions.$inferSelect;
+export type MedicationError = typeof medicationErrors.$inferSelect;
 
 export type NewOrganization = typeof organizations.$inferInsert;
 export type NewUser = typeof users.$inferInsert;
 export type NewChecklistEntry = typeof checklistEntries.$inferInsert;
 export type NewReminder = typeof reminders.$inferInsert;
 export type NewWebPushSubscription = typeof webpushSubscriptions.$inferInsert;
+export type NewMedicationError = typeof medicationErrors.$inferInsert;
