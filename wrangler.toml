@@ -1,7 +1,12 @@
 name = "medcheck"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
-node_compat = true
+# Reemplaza node_compat por la nueva bandera recomendada
+compatibility_flags = ["nodejs_compat"]
+
+[site]
+bucket = "static"
+entry-point = "src"
 
 [[d1_databases]]
 binding = "DB"
