@@ -6,7 +6,6 @@ compatibility_flags = ["nodejs_compat"]
 
 [site]
 bucket = "static"
-entry-point = "src"
 
 [[d1_databases]]
 binding = "DB"
