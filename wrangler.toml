@@ -13,3 +13,7 @@ ENVIRONMENT = "production"
 APP_NAME = "MedCheck"
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = "30"
+AI_ENABLED = "false" # Cambiar a "true" cuando se configuren las llaves
+GEMINI_API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta" # Endpoint base Google Gemini
+GEMINI_API_MODEL = "gemini-1.5-flash" # Modelo por defecto para tareas rápidas
+DRUG_INTERACTIONS_API_URL = "https://api.drugdb.example/v1/interactions" # Placeholder, reemplazar con servicio real

@@ -10,6 +10,7 @@ import organizationsRouter from './routes/organizations';
 import reportsRouter from './routes/reports';
 import remindersRouter from './routes/reminders';
 import errorsRouter from './routes/errors';
+import aiRouter from './routes/ai';
 
 // Types
 export type Env = {
@@ -51,6 +52,7 @@ app.route('/organizations', organizationsRouter);
 app.route('/reports', reportsRouter);
 app.route('/reminders', remindersRouter);
 app.route('/errors', errorsRouter);
+app.route('/ai', aiRouter);
 
 // Root - serve landing page
 app.get('/', async (c) => {
